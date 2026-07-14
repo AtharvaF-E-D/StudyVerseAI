@@ -1,0 +1,66 @@
+name: backend-ci
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci.yml"
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: studyverse
+          POSTGRES_PASSWORD: studyverse_ci_password
+          POSTGRES_DB: studyverse
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U studyverse -d studyverse"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      ConnectionStrings__Postgres: "Host=localhost;Port=5432;Database=studyverse;Username=studyverse;Password=studyverse_ci_password"
+      Redis__ConnectionString: "localhost:6379"
+      Jwt__SigningKey: "ci-only-signing-key-not-for-production-use-0123456789"
+      Jwt__Issuer: "studyverse-ci"
+      Jwt__Audience: "studyverse-ci"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore
+        run: dotnet restore StudyVerse.sln
+
+      - name: Build
+        run: dotnet build StudyVerse.sln --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test StudyVerse.sln --no-build --configuration Release --verbosity normal

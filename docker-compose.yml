@@ -1,0 +1,56 @@
+name: studyverse
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: studyverse-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: studyverse
+      POSTGRES_PASSWORD: studyverse_dev_password
+      POSTGRES_DB: studyverse
+    ports:
+      - "5432:5432"
+    volumes:
+      - studyverse-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U studyverse -d studyverse"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: studyverse-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - studyverse-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: studyverse-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=studyverse;Username=studyverse;Password=studyverse_dev_password"
+      Redis__ConnectionString: "redis:6379"
+    ports:
+      - "5080:8080"
+
+volumes:
+  studyverse-postgres-data:
+  studyverse-redis-data:

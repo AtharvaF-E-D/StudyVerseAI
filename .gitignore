@@ -1,0 +1,48 @@
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.vs/
+.vscode/*
+!.vscode/extensions.json
+*.user
+
+# --- Claude Code local settings (personal, not shared) ---
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+# --- .NET / backend ---
+backend/**/bin/
+backend/**/obj/
+backend/**/*.user
+backend/**/appsettings.*.local.json
+backend/**/.env
+
+# --- Node / mobile ---
+mobile/node_modules/
+mobile/.expo/
+mobile/dist/
+mobile/web-build/
+mobile/*.tsbuildinfo
+mobile/.env
+mobile/.env.development
+mobile/.env.staging
+mobile/.env.production
+!mobile/.env.example
+mobile/ios/
+mobile/android/
+
+# --- Admin ---
+admin/node_modules/
+admin/dist/
+admin/build/
+
+# --- Secrets ---
+*.pfx
+*.pem
+*.key
+**/secrets.json
+**/*.local.json
+
+# --- Logs ---
+*.log
+logs/
