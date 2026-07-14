@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, router } from "expo-router";
 import { useMutation } from "@tanstack/react-query";
 import * as WebBrowser from "expo-web-browser";
-import * as Google from "expo-auth-session/providers/google";
 import * as AppleAuthentication from "expo-apple-authentication";
 import Constants from "expo-constants";
 import { isAxiosError } from "axios";
@@ -13,6 +12,7 @@ import { isAxiosError } from "axios";
 import { ScreenContainer } from "../../src/components/ScreenContainer";
 import { TextField } from "../../src/components/TextField";
 import { Button } from "../../src/components/Button";
+import { GoogleSignInButton } from "../../src/components/GoogleSignInButton";
 import { useTheme } from "../../src/theme/ThemeProvider";
 import { loginSchema, type LoginFormValues } from "../../src/validation/authSchemas";
 import {
@@ -30,6 +30,14 @@ const googleIosClientId = (Constants.expoConfig?.extra?.googleIosClientId as str
 const googleAndroidClientId =
   (Constants.expoConfig?.extra?.googleAndroidClientId as string | undefined) || undefined;
 const googleWebClientId = (Constants.expoConfig?.extra?.googleWebClientId as string | undefined) || undefined;
+
+// expo-auth-session's Google hook throws synchronously if no client id is
+// configured for the current platform, so only mount it once one exists.
+const hasGoogleClientId = Platform.select({
+  ios: !!googleIosClientId,
+  android: !!googleAndroidClientId,
+  default: !!googleWebClientId,
+});
 
 function extractErrorMessage(error: unknown, fallback: string): string {
   if (isAxiosError(error)) {
@@ -63,12 +71,6 @@ export default function LoginScreen() {
     if (Platform.OS !== "ios") return;
     AppleAuthentication.isAvailableAsync().then(setIsAppleAvailable);
   }, []);
-
-  const [googleRequest, googleResponse, promptGoogleSignIn] = Google.useIdTokenAuthRequest({
-    iosClientId: googleIosClientId,
-    androidClientId: googleAndroidClientId,
-    clientId: googleWebClientId,
-  });
 
   const loginMutation = useMutation({
     mutationFn: (values: LoginFormValues) =>
@@ -119,15 +121,6 @@ export default function LoginScreen() {
       Alert.alert("Apple sign-in failed", extractErrorMessage(error, "Please try again."));
     },
   });
-
-  useEffect(() => {
-    if (googleResponse?.type === "success" && googleResponse.params.id_token) {
-      googleMutation.mutate(googleResponse.params.id_token);
-    } else if (googleResponse?.type === "error") {
-      Alert.alert("Google sign-in failed", googleResponse.error?.message ?? "Please try again.");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [googleResponse]);
 
   async function handleAppleSignIn() {
     try {
@@ -242,14 +235,16 @@ export default function LoginScreen() {
         <View className="h-px flex-1 bg-border dark:bg-border-dark" />
       </View>
 
-      <Button
-        title="Continue with Google"
-        variant="secondary"
-        onPress={() => promptGoogleSignIn()}
-        loading={googleMutation.isPending}
-        disabled={!googleRequest}
-        style={{ marginBottom: 12 }}
-      />
+      {hasGoogleClientId ? (
+        <GoogleSignInButton
+          iosClientId={googleIosClientId}
+          androidClientId={googleAndroidClientId}
+          webClientId={googleWebClientId}
+          loading={googleMutation.isPending}
+          onIdToken={(idToken) => googleMutation.mutate(idToken)}
+          onError={(message) => Alert.alert("Google sign-in failed", message)}
+        />
+      ) : null}
 
       {isAppleAvailable ? (
         <AppleAuthentication.AppleAuthenticationButton

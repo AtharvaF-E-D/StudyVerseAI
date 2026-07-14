@@ -1,8 +1,15 @@
 import React from "react";
 import { ActivityIndicator, Pressable, Text, type PressableProps } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { cssInterop } from "nativewind";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+// NativeWind can't infer how to translate `className` into `style` for a
+// component wrapped by `Animated.createAnimatedComponent` unless it's told
+// to explicitly — without this the button renders with no Tailwind styles
+// applied at all (invisible background, no padding/radius).
+cssInterop(AnimatedPressable, { className: "style" });
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
