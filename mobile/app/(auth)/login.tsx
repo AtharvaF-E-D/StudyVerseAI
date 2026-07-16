@@ -12,6 +12,7 @@ import { isAxiosError } from "axios";
 import { ScreenContainer } from "../../src/components/ScreenContainer";
 import { TextField } from "../../src/components/TextField";
 import { Button } from "../../src/components/Button";
+import { Divider } from "../../src/components/Divider";
 import { GoogleSignInButton } from "../../src/components/GoogleSignInButton";
 import { useTheme } from "../../src/theme/ThemeProvider";
 import { loginSchema, type LoginFormValues } from "../../src/validation/authSchemas";
@@ -228,11 +229,15 @@ export default function LoginScreen() {
       />
 
       <View className="my-7 flex-row items-center">
-        <View className="h-px flex-1 bg-border dark:bg-border-dark" />
+        <View className="flex-1">
+          <Divider />
+        </View>
         <Text className="mx-3 text-caption text-ink-secondary dark:text-ink-secondary-dark">
           or continue with
         </Text>
-        <View className="h-px flex-1 bg-border dark:bg-border-dark" />
+        <View className="flex-1">
+          <Divider />
+        </View>
       </View>
 
       {hasGoogleClientId ? (

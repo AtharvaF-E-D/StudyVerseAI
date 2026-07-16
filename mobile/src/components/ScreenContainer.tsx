@@ -2,6 +2,13 @@ import React from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { SafeAreaView, type Edge } from "react-native-safe-area-context";
 
+import { MAX_CONTENT_WIDTH } from "../lib/responsive";
+
+// Constrains content to a centered column on wide viewports (tablet/web)
+// so forms/text don't stretch edge-to-edge; a no-op on phone widths, where
+// the viewport is already narrower than `MAX_CONTENT_WIDTH`.
+const centeredContentStyle = { width: "100%" as const, maxWidth: MAX_CONTENT_WIDTH, alignSelf: "center" as const };
+
 export interface ScreenContainerProps {
   children: React.ReactNode;
   /** Wraps content in a ScrollView with keyboard-avoidance, for forms. Defaults to true. */
@@ -30,10 +37,16 @@ export function ScreenContainer({
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
-      {children}
+      <View style={centeredContentStyle} className="flex-1">
+        {children}
+      </View>
     </ScrollView>
   ) : (
-    <View className={["flex-1 px-6 py-6", contentClassName].join(" ")}>{children}</View>
+    <View className={["flex-1 px-6 py-6", contentClassName].join(" ")}>
+      <View style={centeredContentStyle} className="flex-1">
+        {children}
+      </View>
+    </View>
   );
 
   return (

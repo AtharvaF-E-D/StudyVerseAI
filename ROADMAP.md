@@ -5,7 +5,7 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | Phase | Name | Status | Notes |
 |---|---|---|---|
 | 1 | Foundation | ✅ | backend (.NET 9 Clean Architecture, full auth) and mobile (Expo Router auth flow) built and independently verified — see checklist below for the couple of items still open |
-| 2 | Beautiful UI System | ⬜ | design tokens + a handful of shared primitives exist in `mobile/src/theme` and `mobile/src/components`; full component library not built |
+| 2 | Beautiful UI System | ✅ | elevation/motion tokens, icon system, full shared component library, responsive layout, dark mode — built and visually verified (screenshots) in both light and dark |
 | 3 | Dashboard | ⬜ | |
 | 4 | AI Tutor | ⬜ | no `IAiChatProvider` abstraction exists yet — add it when Phase 4 starts |
 | 5 | Rapid Fire Quiz | ⬜ | |
@@ -48,6 +48,28 @@ now corrected): no analytics/crash-reporting abstraction
 `IAiChatProvider` abstraction exists in the backend yet. Add both when their
 respective phases (crash/analytics is cross-cutting, do it alongside Phase 2;
 AI provider abstraction is Phase 4) actually start.
+
+## Phase 2 — Beautiful UI System
+
+- [x] Elevation tokens (`src/theme/elevation.ts`, platform-correct shadow/elevation) and motion tokens (`src/theme/motion.ts`, durations/easings/entrance helpers, respects reduce-motion)
+- [x] Icon system: `src/components/Icon.tsx` wrapping `@expo/vector-icons` Ionicons
+- [x] Shared component library: `Card` (flat/raised/glass), `Badge`, `Chip`, `Avatar`, `Divider`, `ListItem`, `ProgressBar`, `Switch`, `Toast` (+ provider), `Skeleton`, `EmptyState`, `ErrorState`
+- [x] Responsive layout: `useBreakpoint()`, capped max-width content column on tablet/web via `ScreenContainer`
+- [x] Glassmorphism reserved for overlay/floating surfaces only (`Card` `glass` variant, via `expo-blur`)
+- [x] Retrofitted the login screen's divider to use the shared `Divider` component
+- [x] Dev-only showcase route (`app/(dev)/components.tsx`) exercising every component in light + dark
+- [x] Verified: `tsc`/`eslint` clean; screenshotted the showcase screen (light + dark) and the login screen — all components visibly styled correctly, zero console/pageerror output, toast trigger confirmed working live
+
+Caught and fixed one real bug via actually screenshotting (not just checking
+for crashes): `Avatar`'s image variant rendered at the source image's
+intrinsic size (1024×1024) on web instead of the intended 64×64, because
+react-native-web's `Image` sets an inline size style that beats Tailwind
+classes — fixed with an explicit `style={{ width, height }}`.
+
+Not built in Phase 2 (deliberately out of scope, listed so it isn't assumed
+done): a Modal/BottomSheet primitive, a full accessibility/contrast audit
+beyond spot-checking the showcase screen, and any tablet-specific layouts
+beyond the capped content width.
 
 ## Explicit non-goals for Phase 1 (unchanged, still true)
 

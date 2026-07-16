@@ -70,6 +70,17 @@ module.exports = {
         body: ["16px", { lineHeight: "22px", fontWeight: "400" }],
         caption: ["13px", { lineHeight: "18px", fontWeight: "400" }],
       },
+      // Web-only reference for the elevation scale in `src/theme/elevation.ts`.
+      // NativeWind's `shadow-*` utilities are unreliable on native (RN needs
+      // shadowColor/Offset/Opacity/Radius + Android `elevation`), so native
+      // code should use `useElevation()`/`elevationStyles` instead of these
+      // classes. These exist only so the same visual scale is available to
+      // any web-rendered NativeWind className that wants a CSS box-shadow.
+      boxShadow: {
+        sm: "0 1px 2px rgba(18, 20, 26, 0.08)",
+        md: "0 4px 8px rgba(18, 20, 26, 0.12)",
+        lg: "0 10px 24px rgba(18, 20, 26, 0.16)",
+      },
     },
   },
   plugins: [],

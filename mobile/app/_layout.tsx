@@ -8,6 +8,7 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { queryClient } from "../src/lib/queryClient";
+import { ToastProvider } from "../src/lib/toast";
 import { useAuthStore } from "../src/stores/authStore";
 import { ThemeProvider, useTheme } from "../src/theme/ThemeProvider";
 
@@ -44,7 +45,9 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
         <ThemeProvider>
-          <RootNavigator />
+          <ToastProvider>
+            <RootNavigator />
+          </ToastProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     </QueryClientProvider>
