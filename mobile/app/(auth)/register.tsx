@@ -40,14 +40,14 @@ export default function RegisterScreen() {
       }),
     onSuccess: async (data) => {
       try {
-        await requestOtp({ channel: "email", destination: data.email, purpose: "email_verification" });
+        await requestOtp({ channel: "email", destination: data.email, purpose: "emailVerification" });
       } catch {
         // Registration already succeeded; if the OTP send fails the user can
         // still request a fresh code from the otp screen's resend button.
       }
       router.push({
         pathname: "/(auth)/otp",
-        params: { purpose: "email_verification", channel: "email", destination: data.email },
+        params: { purpose: "emailVerification", channel: "email", destination: data.email },
       });
     },
     onError: (error) => {

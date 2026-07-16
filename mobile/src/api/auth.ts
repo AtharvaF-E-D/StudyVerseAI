@@ -25,7 +25,7 @@ export type OtpChannel = "email" | "phone";
  * Purpose tags the backend uses to scope an OTP to a particular flow, e.g.
  * verifying a freshly-registered email address vs. a passwordless login.
  */
-export type OtpPurpose = "email_verification" | "login";
+export type OtpPurpose = "emailVerification" | "login";
 
 // ---------------------------------------------------------------------------
 // POST /register

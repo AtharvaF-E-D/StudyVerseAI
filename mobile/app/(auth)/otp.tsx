@@ -26,7 +26,7 @@ export default function OtpScreen() {
   const params = useLocalSearchParams<{ purpose?: string; channel?: string; destination?: string }>();
   const setSession = useAuthStore((s) => s.setSession);
 
-  const purpose = (params.purpose === "login" ? "login" : "email_verification") as OtpPurpose;
+  const purpose = (params.purpose === "login" ? "login" : "emailVerification") as OtpPurpose;
   const channel = (params.channel === "phone" ? "phone" : "email") as OtpChannel;
   const destination = params.destination ?? "";
 

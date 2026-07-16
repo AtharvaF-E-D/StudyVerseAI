@@ -24,13 +24,24 @@ public static class DependencyInjection
 
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
 
-        var redisConnectionString = configuration["Redis:ConnectionString"]
-            ?? throw new InvalidOperationException("Missing required configuration value 'Redis:ConnectionString'.");
+        // Empty/missing connection string => local dev without Redis installed falls back to an
+        // in-memory cache (see InMemoryCacheService). docker-compose.yml and CI both set
+        // Redis__ConnectionString explicitly, so containerized/CI runs always use real Redis;
+        // Staging/Production configs must always provide a real connection string.
+        var redisConnectionString = configuration["Redis:ConnectionString"];
 
-        services.AddSingleton<IConnectionMultiplexer>(_ =>
-            ConnectionMultiplexer.Connect(redisConnectionString));
+        if (string.IsNullOrWhiteSpace(redisConnectionString))
+        {
+            services.AddMemoryCache();
+            services.AddSingleton<ICacheService, InMemoryCacheService>();
+        }
+        else
+        {
+            services.AddSingleton<IConnectionMultiplexer>(_ =>
+                ConnectionMultiplexer.Connect(redisConnectionString));
 
-        services.AddSingleton<ICacheService, RedisCacheService>();
+            services.AddSingleton<ICacheService, RedisCacheService>();
+        }
 
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.Configure<AppUrlOptions>(configuration.GetSection(AppUrlOptions.SectionName));

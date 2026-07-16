@@ -115,15 +115,27 @@ try
     });
 
     // ---- Health checks ----
-    builder.Services.AddHealthChecks()
+    var healthChecksBuilder = builder.Services.AddHealthChecks()
         .AddNpgSql(
             builder.Configuration.GetConnectionString("Postgres")!,
             name: "postgres",
-            tags: ["ready"])
-        .AddRedis(
-            builder.Configuration["Redis:ConnectionString"]!,
-            name: "redis",
             tags: ["ready"]);
+
+    var redisConnectionStringForHealthCheck = builder.Configuration["Redis:ConnectionString"];
+    if (!string.IsNullOrWhiteSpace(redisConnectionStringForHealthCheck))
+    {
+        healthChecksBuilder.AddRedis(redisConnectionStringForHealthCheck, name: "redis", tags: ["ready"]);
+    }
+    else
+    {
+        // Matches the in-memory ICacheService fallback registered by AddInfrastructure when no
+        // Redis connection string is configured (local dev without Redis installed).
+        healthChecksBuilder.AddCheck(
+            "redis",
+            () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy(
+                "Using in-memory cache fallback (no Redis configured)."),
+            tags: ["ready"]);
+    }
 
     // ---- Rate limiting: fixed window per client IP on sensitive auth endpoints ----
     builder.Services.AddRateLimiter(options =>

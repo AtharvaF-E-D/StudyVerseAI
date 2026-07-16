@@ -25,14 +25,27 @@ StudyVerseAi/
 
 - .NET 9 SDK
 - Node.js 20+ and npm
-- Docker Desktop (for Postgres + Redis)
+- A Postgres 16+ instance reachable from the API — either `docker compose up
+  -d postgres redis`, or a native local install (see note below)
 - Expo Go app or an Android/iOS simulator, for running the mobile app
+
+Docker isn't required. If it's unavailable, the backend falls back to an
+in-memory cache instead of Redis (see next section) — you only need a
+reachable Postgres database.
 
 ### 1. Start infrastructure
 
 ```bash
 docker compose up -d postgres redis
 ```
+
+If you don't have Docker, point `ConnectionStrings:Postgres` in
+`backend/src/StudyVerse.Api/appsettings.Development.json` at any local
+Postgres instance and create the database it names. Leave `Redis:ConnectionString`
+empty (the default) to use the in-memory `ICacheService` fallback — fine for
+local development, but OTP/lockout/rate-limit state won't survive a restart
+or be shared across instances, so Staging/Production must always configure a
+real Redis connection string.
 
 ### 2. Run the backend
 
@@ -44,8 +57,9 @@ dotnet run --project src/StudyVerse.Api
 ```
 
 The API listens on the port printed by `dotnet run` (see
-`backend/src/StudyVerse.Api/Properties/launchSettings.json`); Swagger UI is
-available at `/swagger` in Development.
+`backend/src/StudyVerse.Api/Properties/launchSettings.json` — `5221` for the
+`http` profile by default); Swagger UI is available at `/swagger` in
+Development.
 
 ### 3. Run the mobile app
 
@@ -53,12 +67,14 @@ available at `/swagger` in Development.
 cd mobile
 cp .env.example .env.development
 npm install
-npm run start
+npm run start   # or `npm run web` to run in a browser
 ```
 
-Set `API_BASE_URL` in `mobile/.env.development` to your machine's LAN IP
-(not `localhost`) if testing on a physical device via Expo Go, e.g.
-`http://192.168.1.20:5080/api/v1`.
+Set `API_BASE_URL` in `mobile/.env.development` to match the port the backend
+actually printed in step 2, e.g. `http://localhost:5221` — **without** the
+`/api/v1` suffix (`src/api/client.ts` appends `/api/v1/auth` itself). Use
+your machine's LAN IP instead of `localhost` if testing on a physical device
+via Expo Go.
 
 ## CI
 
