@@ -328,6 +328,19 @@ export function DashboardContent({
         </Card>
       </View>
 
+      {/* Rapid Fire Quiz entry point */}
+      <View className="mb-6">
+        <Card>
+          <ListItem
+            leading={<Icon name="flash" size={22} color={colors.warning} />}
+            title="Rapid Fire Quiz"
+            subtitle="Race the clock, build a streak, beat your best combo"
+            trailing={<Icon name="chevron-forward" size={18} color={colors.textSecondary} />}
+            onPress={() => router.push("/(app)/quiz")}
+          />
+        </Card>
+      </View>
+
       {/* Continue learning / AI recommendations — intentionally honest: no feature produces this data yet. */}
       <View>
         <SectionTitle>Continue learning</SectionTitle>

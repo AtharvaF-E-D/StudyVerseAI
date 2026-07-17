@@ -7,8 +7,8 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | 1 | Foundation | ✅ | backend (.NET 9 Clean Architecture, full auth) and mobile (Expo Router auth flow) built and independently verified — see checklist below for the couple of items still open |
 | 2 | Beautiful UI System | ✅ | elevation/motion tokens, icon system, full shared component library, responsive layout, dark mode — built and visually verified (screenshots) in both light and dark |
 | 3 | Dashboard | ✅ | backend (streak/XP/coins, daily challenges, leaderboard, notifications) and mobile dashboard screen built and verified end-to-end through the real UI |
-| 4 | AI Tutor | ⬜ | no `IAiChatProvider` abstraction exists yet — add it when Phase 4 starts |
-| 5 | Rapid Fire Quiz | ⬜ | |
+| 4 | AI Tutor | ✅ (scoped) | real OpenAI (gpt-4o-mini) chat, conversation history/search/bookmarks, offline KaTeX math + code rendering, daily token cap. Voice input/output, OCR/image understanding, and true token streaming deliberately deferred — time-boxed, not oversights |
+| 5 | Rapid Fire Quiz | ✅ | 90 real seeded questions across 5 categories × 3 difficulties, lives/combo/scoring/power-ups/daily-challenge, anti-repetition question selection, review screen — built and verified (backend rigorously via live curl walkthrough, mobile via live UI screenshots + independent typecheck/lint) |
 | 6 | AI Notes | ⬜ | |
 | 7 | Flashcards | ⬜ | |
 | 8 | Mock Tests | ⬜ | |
@@ -84,6 +84,25 @@ beyond the capped content width.
 - [x] Verified end-to-end through the real UI (not mocks): registered a real user, verified via real OTP, landed on the real dashboard fetched from the real backend, tapped a real challenge to completion, watched XP/coins/weekly-chart/leaderboard update live via a real toast and a real dashboard refetch
 
 Deliberately NOT built (honest gaps, not oversights): no `minutesStudied`/time-tracking field anywhere (no feature produces that data until the Study Planner, Phase 9); "Continue learning" and "AI recommendations" are empty states, not fake content, until Phases 4-11 exist; daily challenges are self-reported ("tap to mark done") rather than auto-completed by real quiz/flashcard activity, since those features don't exist yet — wire real auto-completion triggers into `CompleteChallengeCommand`'s call sites once they do.
+
+## Phase 4 — AI Tutor (scoped)
+
+- [x] `Conversation`/`Message` entities, `IAiChatProvider`/`OpenAiChatProvider` (official OpenAI SDK, `gpt-4o-mini`), daily per-user token cap reusing the streak service's date-rollover pattern
+- [x] Create/list+search/get-messages/send/bookmark/delete conversations, usage endpoint — all `[Authorize]`
+- [x] Mobile chat UI: offline-bundled KaTeX math rendering (WebView on native, DOM injection on web — no CDN, fonts embedded as base64), syntax-highlighted code blocks, tap-to-send follow-up suggestion chips, token-usage indicator, "Ask your AI tutor" dashboard entry point
+- [x] 16 new backend unit tests (44/44 total at the time); verified against the **real live OpenAI API** — a real question got a real, correctly-LaTeX-formatted answer back
+
+Deliberately NOT built this pass (time-boxed, not oversights — pick up when there's budget for them): voice input/output, OCR-from-camera/image understanding, and true token-by-token streaming (the backend returns the complete assembled reply; reliable RN-side stream consumption needed more time than was available in the window).
+
+## Phase 5 — Rapid Fire Quiz
+
+- [x] `QuizQuestion`/`QuizSession`/`QuizSessionQuestion` entities; **90 real, hand-written trivia questions** seeded across 5 categories (Science, Mathematics, History, Geography, General Knowledge) × 3 difficulties
+- [x] Anti-repetition question selection (excludes questions seen in a user's last 3 completed sessions, with a documented small-pool fallback), lives (3, -1 on wrong answer), combo multiplier scoring (up to 1.5x at a 5+ streak), two power-ups (50-50, +10s), a daily-challenge mode (one per UTC day, deterministic category/difficulty rotation, real 409 rejection on a second attempt)
+- [x] Full session lifecycle: start → answer (server validates correctness, never leaks the answer to the client) → complete (lives-out or all-answered) → review (every question with the user's answer, correct answer, explanation) → stats (accuracy, best combo, per-category breakdown)
+- [x] 33 new backend unit tests (77/77 total); verified via a **real live curl walkthrough** — combo/lives/scoring/daily-challenge-rejection all confirmed changing correctly in real responses, and the awarded XP/coins confirmed landing in the real dashboard/leaderboard afterward
+- [x] Mobile: category/difficulty picker with a stats strip and daily-challenge card, play screen (animated timer bar, hearts, pulsing combo badge, power-up buttons, pause/quit), review screen, "Rapid Fire Quiz" dashboard entry point — independently confirmed rendering real live data (categories, a real fetched question, hearts/timer/options all correctly styled) via screenshots against the running backend
+
+One known gap worth fixing before this ships for real: on a client-side timeout, the mobile app currently submits a fallback guess (`selectedOptionIndex: 0`) rather than a true "no answer" signal, because the backend's answer validator currently requires an index 0-3. If a question's correct answer happens to be index 0, a timed-out non-answer would incorrectly score as correct. Fix: add an explicit "timed out / no answer" case to `SubmitAnswerCommand` rather than overloading index 0.
 
 ## Explicit non-goals for Phase 1 (unchanged, still true)
 

@@ -28,6 +28,12 @@ public class AppDbContext : DbContext, IAppDbContext
 
     public DbSet<Message> Messages => Set<Message>();
 
+    public DbSet<QuizQuestion> QuizQuestions => Set<QuizQuestion>();
+
+    public DbSet<QuizSession> QuizSessions => Set<QuizSession>();
+
+    public DbSet<QuizSessionQuestion> QuizSessionQuestions => Set<QuizSessionQuestion>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);

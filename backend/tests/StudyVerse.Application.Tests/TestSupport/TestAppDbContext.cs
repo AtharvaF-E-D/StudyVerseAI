@@ -33,6 +33,12 @@ public sealed class TestAppDbContext : DbContext, IAppDbContext
 
     public DbSet<Message> Messages => Set<Message>();
 
+    public DbSet<QuizQuestion> QuizQuestions => Set<QuizQuestion>();
+
+    public DbSet<QuizSession> QuizSessions => Set<QuizSession>();
+
+    public DbSet<QuizSessionQuestion> QuizSessionQuestions => Set<QuizSessionQuestion>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Mirror the real Infrastructure configurations' handling of get-only computed properties.
@@ -42,6 +48,11 @@ public sealed class TestAppDbContext : DbContext, IAppDbContext
         modelBuilder.Entity<Notification>().Ignore(n => n.IsRead);
 
         modelBuilder.Entity<UserProgress>().HasKey(p => p.UserId);
+
+        // No unique index on (UserId, DailyChallengeDateUtc) here: the InMemory provider doesn't
+        // enforce unique indexes at all, and tests that need the "can't play twice today" guarantee
+        // assert on the handler's own pre-check (see StartQuizSessionCommandHandler), matching how
+        // ChallengeCompletion's equivalent guarantee is tested elsewhere in this project.
 
         base.OnModelCreating(modelBuilder);
     }

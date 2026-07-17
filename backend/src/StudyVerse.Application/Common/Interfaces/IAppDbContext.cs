@@ -27,5 +27,11 @@ public interface IAppDbContext
 
     DbSet<Message> Messages { get; }
 
+    DbSet<QuizQuestion> QuizQuestions { get; }
+
+    DbSet<QuizSession> QuizSessions { get; }
+
+    DbSet<QuizSessionQuestion> QuizSessionQuestions { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
