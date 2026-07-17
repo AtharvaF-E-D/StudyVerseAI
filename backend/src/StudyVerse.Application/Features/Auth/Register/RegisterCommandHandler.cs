@@ -74,6 +74,15 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
         };
         _db.UserTokens.Add(verificationToken);
 
+        _db.Notifications.Add(new Notification
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            Title = "Welcome to StudyVerse AI",
+            Body = "We're glad you're here! Verify your email to get started and begin building your study streak.",
+            CreatedAtUtc = now,
+        });
+
         await _db.SaveChangesAsync(cancellationToken);
 
         var verificationLink = BuildLink(_appUrlOptions.EmailVerificationUrlTemplate, user.Id, rawToken, user.Email);

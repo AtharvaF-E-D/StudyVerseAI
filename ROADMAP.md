@@ -6,7 +6,7 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 |---|---|---|---|
 | 1 | Foundation | ✅ | backend (.NET 9 Clean Architecture, full auth) and mobile (Expo Router auth flow) built and independently verified — see checklist below for the couple of items still open |
 | 2 | Beautiful UI System | ✅ | elevation/motion tokens, icon system, full shared component library, responsive layout, dark mode — built and visually verified (screenshots) in both light and dark |
-| 3 | Dashboard | ⬜ | |
+| 3 | Dashboard | ✅ | backend (streak/XP/coins, daily challenges, leaderboard, notifications) and mobile dashboard screen built and verified end-to-end through the real UI |
 | 4 | AI Tutor | ⬜ | no `IAiChatProvider` abstraction exists yet — add it when Phase 4 starts |
 | 5 | Rapid Fire Quiz | ⬜ | |
 | 6 | AI Notes | ⬜ | |
@@ -16,7 +16,7 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | 10 | Current Affairs | ⬜ | |
 | 11 | Coding Practice | ⬜ | |
 | 12 | Interview Preparation | ⬜ | |
-| 13 | Gamification | ⬜ | |
+| 13 | Gamification | ⬜ | minimal primitives (XP, coins, streak, leaderboard) already landed in Phase 3; this phase adds badges, achievements, daily rewards, spin wheel, missions, seasonal events |
 | 14 | Monetization | ⬜ | |
 | 15 | Admin Portal | ⬜ | |
 | 16 | Backend Infrastructure hardening | ⬜ | partial: health checks, rate limiting, and Serilog land in Phase 1; queueing/audit logging/backups deferred |
@@ -70,6 +70,20 @@ Not built in Phase 2 (deliberately out of scope, listed so it isn't assumed
 done): a Modal/BottomSheet primitive, a full accessibility/contrast audit
 beyond spot-checking the showcase screen, and any tablet-specific layouts
 beyond the capped content width.
+
+## Phase 3 — Dashboard
+
+- [x] Domain: `UserProgress` (Xp/Coins/CurrentStreakDays/LongestStreakDays/LastActivityDateUtc), `Notification`, `ChallengeCompletion`; migration `AddDashboardGamification` applied to the real dev database
+- [x] 6 static, feature-agnostic daily challenge templates (`Domain/Gamification/ChallengeTemplate.cs`), 3 selected per day via a deterministic date-based rotation (`DailyChallengeSelector`) — same 3 for every user on a given UTC day
+- [x] Level formula (`LevelCalculator`: `floor(sqrt(xp/50)) + 1`)
+- [x] `IStreakService` — records a login as "activity" (increments/resets/no-ops correctly), wired into the four real sign-in handlers (Login, OTP-login, Google, Apple) — not refresh-token renewal
+- [x] `GET /api/v1/dashboard`, `POST /api/v1/dashboard/challenges/{id}/complete`, `GET/POST /api/v1/notifications[...]`, `GET /api/v1/leaderboard` — all `[Authorize]`
+- [x] Welcome notification seeded on registration
+- [x] 21 new backend unit tests (28/28 total passing)
+- [x] Mobile dashboard screen: streak/level/coins summary, today's challenges (tap-to-complete with a toast confirmation), 7-day activity bar chart, leaderboard preview (own-row highlighted, or a "ranked #N" fallback when outside the top), notifications list, honest `EmptyState` for "Continue learning" (no fabricated content — nothing to show until Phases 4-11 exist), `Skeleton` loading state, `ErrorState` with retry
+- [x] Verified end-to-end through the real UI (not mocks): registered a real user, verified via real OTP, landed on the real dashboard fetched from the real backend, tapped a real challenge to completion, watched XP/coins/weekly-chart/leaderboard update live via a real toast and a real dashboard refetch
+
+Deliberately NOT built (honest gaps, not oversights): no `minutesStudied`/time-tracking field anywhere (no feature produces that data until the Study Planner, Phase 9); "Continue learning" and "AI recommendations" are empty states, not fake content, until Phases 4-11 exist; daily challenges are self-reported ("tap to mark done") rather than auto-completed by real quiz/flashcard activity, since those features don't exist yet — wire real auto-completion triggers into `CompleteChallengeCommand`'s call sites once they do.
 
 ## Explicit non-goals for Phase 1 (unchanged, still true)
 

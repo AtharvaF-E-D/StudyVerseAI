@@ -15,17 +15,20 @@ public sealed class GoogleLoginCommandHandler : IRequestHandler<GoogleLoginComma
     private readonly IGoogleTokenValidator _googleTokenValidator;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IStreakService _streakService;
 
     public GoogleLoginCommandHandler(
         IAppDbContext db,
         IGoogleTokenValidator googleTokenValidator,
         IJwtTokenService jwtTokenService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        IStreakService streakService)
     {
         _db = db;
         _googleTokenValidator = googleTokenValidator;
         _jwtTokenService = jwtTokenService;
         _dateTimeProvider = dateTimeProvider;
+        _streakService = streakService;
     }
 
     public async Task<Result<AuthSessionDto>> Handle(GoogleLoginCommand request, CancellationToken cancellationToken)
@@ -67,6 +70,8 @@ public sealed class GoogleLoginCommandHandler : IRequestHandler<GoogleLoginComma
             user.UpdatedAtUtc = now;
             await _db.SaveChangesAsync(cancellationToken);
         }
+
+        await _streakService.RecordActivityAsync(user.Id, cancellationToken);
 
         var session = await TokenIssuer.IssueSessionAsync(
             _db,

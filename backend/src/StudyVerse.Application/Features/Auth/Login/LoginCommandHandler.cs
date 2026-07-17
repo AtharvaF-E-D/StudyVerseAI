@@ -20,19 +20,22 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly ICacheService _cache;
+    private readonly IStreakService _streakService;
 
     public LoginCommandHandler(
         IAppDbContext db,
         IPasswordHasher passwordHasher,
         IJwtTokenService jwtTokenService,
         IDateTimeProvider dateTimeProvider,
-        ICacheService cache)
+        ICacheService cache,
+        IStreakService streakService)
     {
         _db = db;
         _passwordHasher = passwordHasher;
         _jwtTokenService = jwtTokenService;
         _dateTimeProvider = dateTimeProvider;
         _cache = cache;
+        _streakService = streakService;
     }
 
     public async Task<Result<AuthSessionDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -106,6 +109,8 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
 
         user.FailedLoginAttempts = 0;
         user.IsLockedOut = false;
+
+        await _streakService.RecordActivityAsync(user.Id, cancellationToken);
 
         var session = await TokenIssuer.IssueSessionAsync(
             _db,

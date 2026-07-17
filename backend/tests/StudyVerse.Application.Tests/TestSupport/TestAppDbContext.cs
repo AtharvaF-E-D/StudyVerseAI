@@ -23,12 +23,21 @@ public sealed class TestAppDbContext : DbContext, IAppDbContext
 
     public DbSet<UserToken> UserTokens => Set<UserToken>();
 
+    public DbSet<UserProgress> UserProgresses => Set<UserProgress>();
+
+    public DbSet<Notification> Notifications => Set<Notification>();
+
+    public DbSet<ChallengeCompletion> ChallengeCompletions => Set<ChallengeCompletion>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Mirror the real Infrastructure configurations' handling of get-only computed properties.
         modelBuilder.Entity<RefreshToken>().Ignore(rt => rt.IsRevoked);
         modelBuilder.Entity<OtpCode>().Ignore(o => o.IsConsumed);
         modelBuilder.Entity<UserToken>().Ignore(t => t.IsConsumed);
+        modelBuilder.Entity<Notification>().Ignore(n => n.IsRead);
+
+        modelBuilder.Entity<UserProgress>().HasKey(p => p.UserId);
 
         base.OnModelCreating(modelBuilder);
     }

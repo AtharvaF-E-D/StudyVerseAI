@@ -1,23 +1,39 @@
 import React, { useState } from "react";
-import { Alert, Text, View } from "react-native";
+import { Alert } from "react-native";
 import { router } from "expo-router";
 
 import { ScreenContainer } from "../../src/components/ScreenContainer";
-import { Button } from "../../src/components/Button";
+import { ErrorState } from "../../src/components/ErrorState";
+import { DashboardContent } from "../../src/components/dashboard/DashboardContent";
+import { DashboardSkeleton } from "../../src/components/dashboard/DashboardSkeleton";
 import { useAuthStore } from "../../src/stores/authStore";
 import { logout as logoutRequest } from "../../src/api/auth";
-import { getDeviceName, getOrCreateDeviceId } from "../../src/lib/storage";
+import { getOrCreateDeviceId } from "../../src/lib/storage";
+import { useToast } from "../../src/lib/toast";
+import {
+  useCompleteChallengeMutation,
+  useDashboardQuery,
+  useMarkNotificationReadMutation,
+} from "../../src/hooks/useDashboard";
 
 /**
- * Placeholder authenticated home screen. It only needs to prove the auth
- * flow works end-to-end (show the logged-in user and allow logging out) —
- * the real dashboard is built in Phase 3.
+ * Authenticated home screen: streak/xp/coins summary, today's challenges,
+ * weekly activity, a leaderboard preview, recent notifications, and an
+ * honest placeholder for "continue learning" (no feature produces that data
+ * until later phases). All layout lives in `DashboardContent` so the dev
+ * preview at `app/(dev)/dashboard-preview.tsx` can render the exact same UI
+ * against mocked fixtures.
  */
 export default function AppHomeScreen() {
   const user = useAuthStore((s) => s.user);
   const refreshToken = useAuthStore((s) => s.refreshToken);
   const clearSession = useAuthStore((s) => s.clearSession);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { show } = useToast();
+
+  const dashboardQuery = useDashboardQuery();
+  const completeChallengeMutation = useCompleteChallengeMutation();
+  const markNotificationReadMutation = useMarkNotificationReadMutation();
 
   async function handleLogout() {
     setIsLoggingOut(true);
@@ -36,39 +52,57 @@ export default function AppHomeScreen() {
     }
   }
 
+  function confirmLogout() {
+    Alert.alert("Log out", "Are you sure you want to log out?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Log out", style: "destructive", onPress: handleLogout },
+    ]);
+  }
+
+  function handleCompleteChallenge(challengeId: string) {
+    if (completeChallengeMutation.isPending) return;
+    completeChallengeMutation.mutate(challengeId, {
+      onSuccess: (result) => {
+        show(`+${result.xpAwarded} XP, +${result.coinsAwarded} coins!`, "success");
+      },
+      onError: () => {
+        show("Couldn't complete that challenge. Try again.", "danger");
+      },
+    });
+  }
+
+  function handleMarkNotificationRead(notificationId: string) {
+    if (markNotificationReadMutation.isPending) return;
+    markNotificationReadMutation.mutate(notificationId);
+  }
+
   return (
-    <ScreenContainer scrollable={false}>
-      <View className="flex-1 items-center justify-center px-6">
-        <Text className="mb-2 text-center text-heading text-ink-primary dark:text-ink-primary-dark">
-          Welcome to StudyVerse AI
-        </Text>
-        <Text className="mb-1 text-center text-body text-ink-secondary dark:text-ink-secondary-dark">
-          Signed in as
-        </Text>
-        <Text className="mb-8 text-center text-subheading font-semibold text-brand dark:text-brand-light">
-          {user?.email ?? "unknown user"}
-        </Text>
-        {user && !user.emailVerified ? (
-          <Text className="mb-8 text-center text-caption text-warning">
-            Your email isn&apos;t verified yet.
-          </Text>
-        ) : null}
-        <Text className="mb-8 text-center text-caption text-ink-secondary dark:text-ink-secondary-dark">
-          Device: {getDeviceName()}
-        </Text>
-        <Button
-          title="Log out"
-          variant="secondary"
-          onPress={() => {
-            Alert.alert("Log out", "Are you sure you want to log out?", [
-              { text: "Cancel", style: "cancel" },
-              { text: "Log out", style: "destructive", onPress: handleLogout },
-            ]);
-          }}
-          loading={isLoggingOut}
-          fullWidth={false}
+    <ScreenContainer>
+      {dashboardQuery.isLoading ? (
+        <DashboardSkeleton />
+      ) : dashboardQuery.isError || !dashboardQuery.data ? (
+        <ErrorState
+          title="Couldn't load your dashboard"
+          description="Check your connection and try again."
+          onRetry={() => void dashboardQuery.refetch()}
         />
-      </View>
+      ) : (
+        <DashboardContent
+          displayName={user?.displayName ?? "there"}
+          data={dashboardQuery.data}
+          currentUserId={user?.id}
+          isLoggingOut={isLoggingOut}
+          onLogout={confirmLogout}
+          onCompleteChallenge={handleCompleteChallenge}
+          completingChallengeId={
+            completeChallengeMutation.isPending ? (completeChallengeMutation.variables ?? null) : null
+          }
+          onMarkNotificationRead={handleMarkNotificationRead}
+          markingNotificationId={
+            markNotificationReadMutation.isPending ? (markNotificationReadMutation.variables ?? null) : null
+          }
+        />
+      )}
     </ScreenContainer>
   );
 }

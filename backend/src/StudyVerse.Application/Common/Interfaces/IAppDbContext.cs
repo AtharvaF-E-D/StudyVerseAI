@@ -17,5 +17,11 @@ public interface IAppDbContext
 
     DbSet<UserToken> UserTokens { get; }
 
+    DbSet<UserProgress> UserProgresses { get; }
+
+    DbSet<Notification> Notifications { get; }
+
+    DbSet<ChallengeCompletion> ChallengeCompletions { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

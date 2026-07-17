@@ -20,11 +20,12 @@ public sealed class LoginCommandHandlerTests
     private readonly IJwtTokenService _jwtTokenService = Substitute.For<IJwtTokenService>();
     private readonly TestDateTimeProvider _dateTimeProvider = new();
     private readonly TestCacheService _cache = new();
+    private readonly IStreakService _streakService = Substitute.For<IStreakService>();
 
     private User _user = null!;
 
     private LoginCommandHandler CreateHandler() =>
-        new(_db, _passwordHasher, _jwtTokenService, _dateTimeProvider, _cache);
+        new(_db, _passwordHasher, _jwtTokenService, _dateTimeProvider, _cache, _streakService);
 
     public LoginCommandHandlerTests()
     {

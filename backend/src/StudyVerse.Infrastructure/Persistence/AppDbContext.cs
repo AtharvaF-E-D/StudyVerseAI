@@ -18,6 +18,12 @@ public class AppDbContext : DbContext, IAppDbContext
 
     public DbSet<UserToken> UserTokens => Set<UserToken>();
 
+    public DbSet<UserProgress> UserProgresses => Set<UserProgress>();
+
+    public DbSet<Notification> Notifications => Set<Notification>();
+
+    public DbSet<ChallengeCompletion> ChallengeCompletions => Set<ChallengeCompletion>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);

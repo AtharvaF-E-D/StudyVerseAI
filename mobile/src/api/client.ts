@@ -6,9 +6,18 @@ import { useAuthStore } from "../stores/authStore";
 
 const rawApiBaseUrl =
   (Constants.expoConfig?.extra?.apiBaseUrl as string | undefined) ?? "http://localhost:5000";
+const trimmedApiBaseUrl = rawApiBaseUrl.replace(/\/+$/, "");
 
 /** Backend base URL, per the API contract: `<API_BASE_URL>/api/v1/auth`. */
-export const AUTH_API_BASE_URL = `${rawApiBaseUrl.replace(/\/+$/, "")}/api/v1/auth`;
+export const AUTH_API_BASE_URL = `${trimmedApiBaseUrl}/api/v1/auth`;
+
+/**
+ * Backend base URL for every non-auth controller (dashboard, notifications,
+ * leaderboard, and future feature areas): `<API_BASE_URL>/api/v1`. Auth
+ * endpoints live one level deeper (see `AUTH_API_BASE_URL`) and keep their
+ * own client instance so `./auth.ts` is unaffected by this.
+ */
+export const API_BASE_URL = `${trimmedApiBaseUrl}/api/v1`;
 
 interface RefreshResponse {
   accessToken: string;
@@ -19,20 +28,6 @@ interface RefreshResponse {
 interface RetryableRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
-
-/**
- * Main axios instance used by every function in `./auth.ts`. A request
- * interceptor attaches the current access token (if any); a response
- * interceptor transparently refreshes an expired token exactly once per
- * request and retries, forcing a logout if the refresh itself fails.
- */
-export const apiClient = createAxiosInstance({
-  baseURL: AUTH_API_BASE_URL,
-  timeout: 15000,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
 
 /**
  * A second, interceptor-free client used only to call `/refresh` itself so
@@ -47,14 +42,13 @@ const refreshClient = createAxiosInstance({
   },
 });
 
-apiClient.interceptors.request.use((config) => {
-  const { accessToken } = useAuthStore.getState();
-  if (accessToken) {
-    config.headers.set("Authorization", `Bearer ${accessToken}`);
-  }
-  return config;
-});
-
+/**
+ * Pending requests queued while a token refresh triggered by *any*
+ * authenticated client is in flight. Shared at module scope (rather than
+ * per-client) because there is only ever one refresh token per session — a
+ * 401 from the dashboard client and a 401 from the auth client should both
+ * wait on the same in-flight refresh instead of racing separate ones.
+ */
 interface PendingRequest {
   resolve: (token: string) => void;
   reject: (error: unknown) => void;
@@ -74,67 +68,104 @@ function flushQueue(error: unknown, token: string | null) {
   pendingRequests = [];
 }
 
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error: AxiosError) => {
-    const originalRequest = error.config as RetryableRequestConfig | undefined;
+/**
+ * Builds an axios instance scoped to `baseURL` with the shared
+ * attach-token / refresh-and-retry-on-401 behavior every authenticated
+ * client in this app needs. `apiClient` (auth-scoped) and `coreApiClient`
+ * (everything else) are both just this factory applied to a different base
+ * path — see `AUTH_API_BASE_URL` / `API_BASE_URL` above.
+ */
+function createAuthenticatedClient(baseURL: string) {
+  const client = createAxiosInstance({
+    baseURL,
+    timeout: 15000,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 
-    const status = error.response?.status;
-    const isUnauthorized = status === 401;
-    const isRefreshCall = originalRequest?.url?.includes("/refresh");
-
-    if (!originalRequest || !isUnauthorized || originalRequest._retry || isRefreshCall) {
-      return Promise.reject(error);
+  client.interceptors.request.use((config) => {
+    const { accessToken } = useAuthStore.getState();
+    if (accessToken) {
+      config.headers.set("Authorization", `Bearer ${accessToken}`);
     }
+    return config;
+  });
 
-    const { refreshToken } = useAuthStore.getState();
-    if (!refreshToken) {
-      useAuthStore.getState().clearSession();
-      return Promise.reject(error);
-    }
+  client.interceptors.response.use(
+    (response) => response,
+    async (error: AxiosError) => {
+      const originalRequest = error.config as RetryableRequestConfig | undefined;
 
-    originalRequest._retry = true;
+      const status = error.response?.status;
+      const isUnauthorized = status === 401;
+      const isRefreshCall = originalRequest?.url?.includes("/refresh");
 
-    if (isRefreshing) {
-      return new Promise((resolve, reject) => {
-        pendingRequests.push({
-          resolve: (token) => {
-            originalRequest.headers.set("Authorization", `Bearer ${token}`);
-            resolve(apiClient(originalRequest));
-          },
-          reject,
-        });
-      });
-    }
+      if (!originalRequest || !isUnauthorized || originalRequest._retry || isRefreshCall) {
+        return Promise.reject(error);
+      }
 
-    isRefreshing = true;
-    try {
-      const deviceId = getOrCreateDeviceId();
-      const { data } = await refreshClient.post<RefreshResponse>("/refresh", {
-        refreshToken,
-        deviceId,
-      });
+      const { refreshToken } = useAuthStore.getState();
+      if (!refreshToken) {
+        useAuthStore.getState().clearSession();
+        return Promise.reject(error);
+      }
 
-      const currentUser = useAuthStore.getState().user;
-      if (currentUser) {
-        useAuthStore.getState().setSession({
-          accessToken: data.accessToken,
-          refreshToken: data.refreshToken,
-          accessTokenExpiresAtUtc: data.accessTokenExpiresAtUtc,
-          user: currentUser,
+      originalRequest._retry = true;
+
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          pendingRequests.push({
+            resolve: (token) => {
+              originalRequest.headers.set("Authorization", `Bearer ${token}`);
+              resolve(client(originalRequest));
+            },
+            reject,
+          });
         });
       }
 
-      flushQueue(null, data.accessToken);
+      isRefreshing = true;
+      try {
+        const deviceId = getOrCreateDeviceId();
+        const { data } = await refreshClient.post<RefreshResponse>("/refresh", {
+          refreshToken,
+          deviceId,
+        });
 
-      originalRequest.headers.set("Authorization", `Bearer ${data.accessToken}`);
-      return apiClient(originalRequest);
-    } catch (refreshError) {
-      flushQueue(refreshError, null);
-      useAuthStore.getState().clearSession();
-      return Promise.reject(refreshError);
-    } finally {
-      isRefreshing = false;
-    }
-  },
-);
+        const currentUser = useAuthStore.getState().user;
+        if (currentUser) {
+          useAuthStore.getState().setSession({
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken,
+            accessTokenExpiresAtUtc: data.accessTokenExpiresAtUtc,
+            user: currentUser,
+          });
+        }
+
+        flushQueue(null, data.accessToken);
+
+        originalRequest.headers.set("Authorization", `Bearer ${data.accessToken}`);
+        return client(originalRequest);
+      } catch (refreshError) {
+        flushQueue(refreshError, null);
+        useAuthStore.getState().clearSession();
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    },
+  );
+
+  return client;
+}
+
+/** Main axios instance used by every function in `./auth.ts`. */
+export const apiClient = createAuthenticatedClient(AUTH_API_BASE_URL);
+
+/**
+ * Axios instance for every non-auth controller (dashboard, notifications,
+ * leaderboard, ...). Same token-attach / refresh-and-retry behavior as
+ * `apiClient`, just scoped to `API_BASE_URL` instead of `AUTH_API_BASE_URL`.
+ */
+export const coreApiClient = createAuthenticatedClient(API_BASE_URL);

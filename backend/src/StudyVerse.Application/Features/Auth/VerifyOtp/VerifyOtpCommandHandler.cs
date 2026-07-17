@@ -34,15 +34,18 @@ public sealed class VerifyOtpCommandHandler : IRequestHandler<VerifyOtpCommand, 
     private readonly IAppDbContext _db;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IStreakService _streakService;
 
     public VerifyOtpCommandHandler(
         IAppDbContext db,
         IJwtTokenService jwtTokenService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        IStreakService streakService)
     {
         _db = db;
         _jwtTokenService = jwtTokenService;
         _dateTimeProvider = dateTimeProvider;
+        _streakService = streakService;
     }
 
     public async Task<Result<AuthSessionDto>> Handle(VerifyOtpCommand request, CancellationToken cancellationToken)
@@ -133,6 +136,11 @@ public sealed class VerifyOtpCommandHandler : IRequestHandler<VerifyOtpCommand, 
         }
 
         await _db.SaveChangesAsync(cancellationToken);
+
+        if (request.Purpose == OtpPurpose.Login)
+        {
+            await _streakService.RecordActivityAsync(user.Id, cancellationToken);
+        }
 
         var session = await TokenIssuer.IssueSessionAsync(
             _db,

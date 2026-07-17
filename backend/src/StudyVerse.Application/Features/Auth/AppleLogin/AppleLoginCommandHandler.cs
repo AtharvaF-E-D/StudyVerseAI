@@ -15,17 +15,20 @@ public sealed class AppleLoginCommandHandler : IRequestHandler<AppleLoginCommand
     private readonly IAppleTokenValidator _appleTokenValidator;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IStreakService _streakService;
 
     public AppleLoginCommandHandler(
         IAppDbContext db,
         IAppleTokenValidator appleTokenValidator,
         IJwtTokenService jwtTokenService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        IStreakService streakService)
     {
         _db = db;
         _appleTokenValidator = appleTokenValidator;
         _jwtTokenService = jwtTokenService;
         _dateTimeProvider = dateTimeProvider;
+        _streakService = streakService;
     }
 
     public async Task<Result<AuthSessionDto>> Handle(AppleLoginCommand request, CancellationToken cancellationToken)
@@ -70,6 +73,8 @@ public sealed class AppleLoginCommandHandler : IRequestHandler<AppleLoginCommand
             user.UpdatedAtUtc = now;
             await _db.SaveChangesAsync(cancellationToken);
         }
+
+        await _streakService.RecordActivityAsync(user.Id, cancellationToken);
 
         var session = await TokenIssuer.IssueSessionAsync(
             _db,
