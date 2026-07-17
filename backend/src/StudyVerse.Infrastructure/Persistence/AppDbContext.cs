@@ -24,6 +24,10 @@ public class AppDbContext : DbContext, IAppDbContext
 
     public DbSet<ChallengeCompletion> ChallengeCompletions => Set<ChallengeCompletion>();
 
+    public DbSet<Conversation> Conversations => Set<Conversation>();
+
+    public DbSet<Message> Messages => Set<Message>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);

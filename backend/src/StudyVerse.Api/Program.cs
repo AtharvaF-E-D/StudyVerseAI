@@ -86,6 +86,19 @@ try
 
     builder.Services.AddAuthorization();
 
+    // ---- OpenAI (AI Tutor) ----
+    // Not a hard startup failure (many flows don't touch the tutor at all) — OpenAiChatProvider
+    // is a lazily-resolved singleton and throws its own clear error the first time a tutor
+    // request actually needs it if this is still missing.
+    var openAiApiKey = builder.Configuration["OpenAI:ApiKey"];
+    if (string.IsNullOrWhiteSpace(openAiApiKey))
+    {
+        Log.Warning(
+            "OpenAI:ApiKey is not configured — AI tutor endpoints will fail until it's set " +
+            "(`dotnet user-secrets set OpenAI:ApiKey <key>` in Development, or the OpenAI__ApiKey " +
+            "environment variable in Staging/Production).");
+    }
+
     // ---- Swagger / OpenAPI ----
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>

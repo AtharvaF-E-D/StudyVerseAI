@@ -42,6 +42,8 @@ admin/build/
 *.key
 **/secrets.json
 **/*.local.json
+*api*key*.txt
+openai key*.txt
 
 # --- Logs ---
 *.log

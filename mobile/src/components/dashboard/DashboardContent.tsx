@@ -1,5 +1,6 @@
 import React from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { router } from "expo-router";
 
 import { Avatar } from "../Avatar";
 import { Badge } from "../Badge";
@@ -311,6 +312,19 @@ export function DashboardContent({
               );
             })
           )}
+        </Card>
+      </View>
+
+      {/* AI tutor entry point */}
+      <View className="mb-6">
+        <Card>
+          <ListItem
+            leading={<Icon name="sparkles" size={22} color={colors.brand} />}
+            title="Ask your AI tutor"
+            subtitle="Get help with anything you're studying"
+            trailing={<Icon name="chevron-forward" size={18} color={colors.textSecondary} />}
+            onPress={() => router.push("/(app)/tutor")}
+          />
         </Card>
       </View>
 

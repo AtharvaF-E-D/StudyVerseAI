@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 using StudyVerse.Application.Common.Interfaces;
 using StudyVerse.Application.Common.Models;
+using StudyVerse.Infrastructure.Ai;
 using StudyVerse.Infrastructure.Auth;
 using StudyVerse.Infrastructure.Caching;
 using StudyVerse.Infrastructure.Common;
@@ -47,6 +48,8 @@ public static class DependencyInjection
         services.Configure<AppUrlOptions>(configuration.GetSection(AppUrlOptions.SectionName));
         services.Configure<GoogleOptions>(configuration.GetSection(GoogleOptions.SectionName));
         services.Configure<AppleOptions>(configuration.GetSection(AppleOptions.SectionName));
+        services.Configure<AiOptions>(configuration.GetSection(AiOptions.SectionName));
+        services.Configure<OpenAiOptions>(configuration.GetSection(OpenAiOptions.SectionName));
 
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
@@ -62,6 +65,11 @@ public static class DependencyInjection
             client.Timeout = TimeSpan.FromSeconds(10);
         });
         services.AddSingleton<IAppleTokenValidator, AppleTokenValidator>();
+
+        // Singleton: ChatClient (OpenAI SDK) is thread-safe and holds no per-request state.
+        // Resolved lazily, so a missing OpenAI:ApiKey only throws when a tutor request actually
+        // comes in, not at application startup (Program.cs logs a warning at startup instead).
+        services.AddSingleton<IAiChatProvider, OpenAiChatProvider>();
 
         return services;
     }

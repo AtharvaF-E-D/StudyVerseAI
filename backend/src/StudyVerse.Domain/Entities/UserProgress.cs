@@ -21,5 +21,18 @@ public class UserProgress
     /// <summary>The last UTC calendar date the user "showed up" (signed in). Null until the first activity.</summary>
     public DateOnly? LastActivityDateUtc { get; set; }
 
+    /// <summary>
+    /// Total prompt+completion tokens the AI tutor has used for this user on
+    /// <see cref="AiUsageResetDateUtc"/>. Reset to 0 the next time it's read/written on a
+    /// different UTC calendar date (see <c>AiUsagePolicy</c>), mirroring the same
+    /// "compare to stored date, reset if different" pattern <c>StreakService</c> uses for
+    /// <see cref="LastActivityDateUtc"/> — added here rather than a sibling entity since it's
+    /// another simple daily counter on the same one-row-per-user gamification/usage record.
+    /// </summary>
+    public int AiTokensUsedToday { get; set; }
+
+    /// <summary>The UTC calendar date <see cref="AiTokensUsedToday"/> was last reset for. Null until the first AI tutor message.</summary>
+    public DateOnly? AiUsageResetDateUtc { get; set; }
+
     public User? User { get; set; }
 }

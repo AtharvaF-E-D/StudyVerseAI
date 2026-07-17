@@ -20,6 +20,9 @@ public sealed class UserProgressConfiguration : IEntityTypeConfiguration<UserPro
 
         builder.Property(p => p.LastActivityDateUtc).HasColumnType("date");
 
+        builder.Property(p => p.AiTokensUsedToday).IsRequired().HasDefaultValue(0);
+        builder.Property(p => p.AiUsageResetDateUtc).HasColumnType("date");
+
         builder.HasOne(p => p.User)
             .WithOne()
             .HasForeignKey<UserProgress>(p => p.UserId)

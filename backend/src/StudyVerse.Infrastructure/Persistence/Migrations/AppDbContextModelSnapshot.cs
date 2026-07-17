@@ -54,6 +54,72 @@ namespace StudyVerse.Infrastructure.Persistence.Migrations
                     b.ToTable("challenge_completions", (string)null);
                 });
 
+            modelBuilder.Entity("StudyVerse.Domain.Entities.Conversation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<bool>("IsBookmarked")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "UpdatedAtUtc");
+
+                    b.ToTable("conversations", (string)null);
+                });
+
+            modelBuilder.Entity("StudyVerse.Domain.Entities.Message", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("CompletionTokens")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<int?>("PromptTokens")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId", "CreatedAtUtc");
+
+                    b.ToTable("messages", (string)null);
+                });
+
             modelBuilder.Entity("StudyVerse.Domain.Entities.Notification", b =>
                 {
                     b.Property<Guid>("Id")
@@ -239,6 +305,14 @@ namespace StudyVerse.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("AiTokensUsedToday")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateOnly?>("AiUsageResetDateUtc")
+                        .HasColumnType("date");
+
                     b.Property<int>("Coins")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -315,6 +389,28 @@ namespace StudyVerse.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("StudyVerse.Domain.Entities.Conversation", b =>
+                {
+                    b.HasOne("StudyVerse.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("StudyVerse.Domain.Entities.Message", b =>
+                {
+                    b.HasOne("StudyVerse.Domain.Entities.Conversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+                });
+
             modelBuilder.Entity("StudyVerse.Domain.Entities.Notification", b =>
                 {
                     b.HasOne("StudyVerse.Domain.Entities.User", "User")
@@ -357,6 +453,11 @@ namespace StudyVerse.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("StudyVerse.Domain.Entities.Conversation", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("StudyVerse.Domain.Entities.User", b =>

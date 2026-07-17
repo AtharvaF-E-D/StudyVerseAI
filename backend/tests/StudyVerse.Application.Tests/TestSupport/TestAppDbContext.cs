@@ -29,6 +29,10 @@ public sealed class TestAppDbContext : DbContext, IAppDbContext
 
     public DbSet<ChallengeCompletion> ChallengeCompletions => Set<ChallengeCompletion>();
 
+    public DbSet<Conversation> Conversations => Set<Conversation>();
+
+    public DbSet<Message> Messages => Set<Message>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Mirror the real Infrastructure configurations' handling of get-only computed properties.
