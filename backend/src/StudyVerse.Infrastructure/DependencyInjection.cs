@@ -10,6 +10,7 @@ using StudyVerse.Infrastructure.Caching;
 using StudyVerse.Infrastructure.Common;
 using StudyVerse.Infrastructure.Email;
 using StudyVerse.Infrastructure.External;
+using StudyVerse.Infrastructure.Files;
 using StudyVerse.Infrastructure.Options;
 using StudyVerse.Infrastructure.Otp;
 using StudyVerse.Infrastructure.Persistence;
@@ -50,6 +51,7 @@ public static class DependencyInjection
         services.Configure<AppleOptions>(configuration.GetSection(AppleOptions.SectionName));
         services.Configure<AiOptions>(configuration.GetSection(AiOptions.SectionName));
         services.Configure<OpenAiOptions>(configuration.GetSection(OpenAiOptions.SectionName));
+        services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));
 
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
@@ -70,6 +72,14 @@ public static class DependencyInjection
         // Resolved lazily, so a missing OpenAI:ApiKey only throws when a tutor request actually
         // comes in, not at application startup (Program.cs logs a warning at startup instead).
         services.AddSingleton<IAiChatProvider, OpenAiChatProvider>();
+
+        // Local disk today; swap this one registration for a Cloudflare R2/S3-backed
+        // IFileStorageService later (see that interface's doc comment) — no other code changes.
+        services.AddSingleton<IFileStorageService, LocalFileStorageService>();
+
+        // Same lazy-API-key-resolution reasoning as IAiChatProvider above.
+        services.AddSingleton<INoteGenerationProvider, OpenAiNoteGenerationProvider>();
+        services.AddSingleton<ITextExtractionService, DocumentTextExtractionService>();
 
         return services;
     }

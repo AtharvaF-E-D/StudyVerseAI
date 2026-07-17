@@ -9,7 +9,7 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | 3 | Dashboard | ✅ | backend (streak/XP/coins, daily challenges, leaderboard, notifications) and mobile dashboard screen built and verified end-to-end through the real UI |
 | 4 | AI Tutor | ✅ (scoped) | real OpenAI (gpt-4o-mini) chat, conversation history/search/bookmarks, offline KaTeX math + code rendering, daily token cap. Voice input/output, OCR/image understanding, and true token streaming deliberately deferred — time-boxed, not oversights |
 | 5 | Rapid Fire Quiz | ✅ | 90 real seeded questions across 5 categories × 3 difficulties, lives/combo/scoring/power-ups/daily-challenge, anti-repetition question selection, review screen — built and verified (backend rigorously via live curl walkthrough, mobile via live UI screenshots + independent typecheck/lint) |
-| 6 | AI Notes | ⬜ | |
+| 6 | AI Notes | ✅ (scoped, backend only) | PDF (PdfPig)/DOCX (OpenXml)/image (OpenAI vision) upload → local-disk storage (cloud-swappable via `IFileStorageService`) → one structured-JSON OpenAI call generating summary, key points, flashcards, mcqs, mind-map outline, revision sheet, vocabulary, formulas — built and verified end-to-end with a real uploaded PDF and a real OpenAI response. PPTX support and a mobile UI deliberately deferred — time-boxed, not oversights |
 | 7 | Flashcards | ⬜ | |
 | 8 | Mock Tests | ⬜ | |
 | 9 | Study Planner | ⬜ | |
@@ -103,6 +103,20 @@ Deliberately NOT built this pass (time-boxed, not oversights — pick up when th
 - [x] Mobile: category/difficulty picker with a stats strip and daily-challenge card, play screen (animated timer bar, hearts, pulsing combo badge, power-up buttons, pause/quit), review screen, "Rapid Fire Quiz" dashboard entry point — independently confirmed rendering real live data (categories, a real fetched question, hearts/timer/options all correctly styled) via screenshots against the running backend
 
 One known gap worth fixing before this ships for real: on a client-side timeout, the mobile app currently submits a fallback guess (`selectedOptionIndex: 0`) rather than a true "no answer" signal, because the backend's answer validator currently requires an index 0-3. If a question's correct answer happens to be index 0, a timed-out non-answer would incorrectly score as correct. Fix: add an explicit "timed out / no answer" case to `SubmitAnswerCommand` rather than overloading index 0.
+
+## Phase 6 — AI Notes (scoped)
+
+- [x] `IFileStorageService`/`LocalFileStorageService` — uploaded files land on local disk under a configurable root; swapping to Cloudflare R2/S3 later is a new implementation of the same interface, no caller changes
+- [x] Text extraction: PdfPig for PDF, DocumentFormat.OpenXml for DOCX; images have no separate OCR pipeline and instead reuse the existing OpenAI integration — sent straight to a vision-capable chat completion for transcription
+- [x] `Note`/`NoteContent` entities (1:1); `NoteContent`'s seven generated pieces (summary, key points, flashcards, mcqs, mind map, revision sheet, vocabulary, formulas) are stored as JSON text columns — documented as a deliberate simplification for read-heavy, always-whole-unit content, not normalized relational sub-tables. The mind map is a nested outline tree (JSON), not a visual canvas
+- [x] `INoteGenerationProvider`/`OpenAiNoteGenerationProvider` — one structured-JSON (OpenAI JSON mode) call per upload produces all seven pieces together; upload/extract/generate all run synchronously within the request (no background job queue yet — Phase 16 territory)
+- [x] Upload/list/get/delete endpoints (`api/v1/notes`, `[Authorize]`), 10MB cap, ownership-checked get/delete, `Failed` status with a stored error message on any pipeline failure (never left stuck at `Processing`)
+- [x] 29 new backend unit tests (106/106 total); verified end-to-end against the **real live OpenAI API** — a real hand-crafted PDF about the water cycle was uploaded, reached `Ready`, and a real, correctly-structured summary/key points/flashcards/mcqs/mind map/revision sheet came back
+- [x] Mobile: upload (document or photo picker), list screen with status badges, tabbed detail screen (Summary/Key Points/Flashcards/MCQs/Mind Map outline/Revision Sheet/Vocabulary/Formulas — formulas reuse the Phase 4 KaTeX renderer), "AI Notes" dashboard entry point — verified against the real running backend: uploaded a real PDF through the actual UI, watched it reach `Ready`, and confirmed the real generated content rendered correctly
+
+Deliberately NOT built this pass (time-boxed, not oversights): PPTX support.
+
+**Real bug caught and fixed by actually driving the live UI (not just fixtures):** the notes list and the Phase 4 tutor conversation list both nested an interactive `Pressable` (delete / bookmark buttons) inside `ListItem`'s `trailing` slot while `ListItem` itself was also `onPress`-active — on web this renders as a literal `<button>` containing another `<button>`, which is invalid HTML that real browsers warn about and can mishandle click-wise. Fixed in both screens by moving the extra buttons to be siblings of `ListItem` instead of children of its `trailing` slot. Worth checking any future `ListItem` usage for the same trap.
 
 ## Explicit non-goals for Phase 1 (unchanged, still true)
 

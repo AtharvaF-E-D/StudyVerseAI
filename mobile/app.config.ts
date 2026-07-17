@@ -83,6 +83,17 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
     "expo-secure-store",
     "expo-apple-authentication",
+    [
+      "expo-image-picker",
+      {
+        // AI Notes only offers a photo-library picker (no in-app camera
+        // capture), so the camera/microphone permission strings are turned
+        // off rather than requesting access this app never uses.
+        photosPermission: "Allow $(PRODUCT_NAME) to access your photos so you can turn them into AI notes.",
+        cameraPermission: false,
+        microphonePermission: false,
+      },
+    ],
   ],
   extra: {
     apiBaseUrl: API_BASE_URL,

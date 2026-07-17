@@ -16,6 +16,7 @@ backend/**/obj/
 backend/**/*.user
 backend/**/appsettings.*.local.json
 backend/**/.env
+backend/**/App_Data/
 
 # --- Node / mobile ---
 mobile/node_modules/

@@ -341,6 +341,19 @@ export function DashboardContent({
         </Card>
       </View>
 
+      {/* AI Notes entry point */}
+      <View className="mb-6">
+        <Card>
+          <ListItem
+            leading={<Icon name="document-text" size={22} color={colors.accent} />}
+            title="AI Notes"
+            subtitle="Turn a document or photo into a summary, flashcards, and more"
+            trailing={<Icon name="chevron-forward" size={18} color={colors.textSecondary} />}
+            onPress={() => router.push("/(app)/notes")}
+          />
+        </Card>
+      </View>
+
       {/* Continue learning / AI recommendations — intentionally honest: no feature produces this data yet. */}
       <View>
         <SectionTitle>Continue learning</SectionTitle>

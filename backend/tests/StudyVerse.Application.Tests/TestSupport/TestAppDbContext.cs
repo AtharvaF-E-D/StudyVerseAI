@@ -39,6 +39,10 @@ public sealed class TestAppDbContext : DbContext, IAppDbContext
 
     public DbSet<QuizSessionQuestion> QuizSessionQuestions => Set<QuizSessionQuestion>();
 
+    public DbSet<Note> Notes => Set<Note>();
+
+    public DbSet<NoteContent> NoteContents => Set<NoteContent>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Mirror the real Infrastructure configurations' handling of get-only computed properties.

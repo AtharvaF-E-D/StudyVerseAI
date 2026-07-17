@@ -33,5 +33,9 @@ public interface IAppDbContext
 
     DbSet<QuizSessionQuestion> QuizSessionQuestions { get; }
 
+    DbSet<Note> Notes { get; }
+
+    DbSet<NoteContent> NoteContents { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

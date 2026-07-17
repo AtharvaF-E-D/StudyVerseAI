@@ -140,40 +140,47 @@ export default function TutorListScreen() {
           {conversations.map((conversation, index) => (
             <React.Fragment key={conversation.id}>
               {index > 0 ? <Divider /> : null}
-              <ListItem
-                leading={<Icon name="chatbubble-ellipses-outline" size={22} color={colors.textSecondary} />}
-                title={conversation.title}
-                subtitle={conversation.lastMessagePreview || "No messages yet"}
-                onPress={() => openConversation(conversation)}
-                trailing={
-                  <View className="flex-row items-center">
-                    <Text className="mr-2 text-caption text-ink-secondary dark:text-ink-secondary-dark">
+              {/* Bookmark/delete are siblings of ListItem, not inside its `trailing`
+                  slot — ListItem renders as a <button> when `onPress` is set, and
+                  nesting other pressables inside it produces invalid HTML (<button>
+                  cannot contain a nested <button>) that real browsers warn about
+                  and mishandle click-wise. */}
+              <View className="flex-row items-center">
+                <ListItem
+                  leading={<Icon name="chatbubble-ellipses-outline" size={22} color={colors.textSecondary} />}
+                  title={conversation.title}
+                  subtitle={conversation.lastMessagePreview || "No messages yet"}
+                  onPress={() => openConversation(conversation)}
+                  trailing={
+                    <Text className="text-caption text-ink-secondary dark:text-ink-secondary-dark">
                       {formatRelativeTime(conversation.updatedAtUtc)}
                     </Text>
-                    <Pressable
-                      onPress={() => handleToggleBookmark(conversation.id)}
-                      hitSlop={8}
-                      accessibilityRole="button"
-                      accessibilityLabel={conversation.isBookmarked ? "Remove bookmark" : "Bookmark conversation"}
-                      className="mr-2"
-                    >
-                      <Icon
-                        name={conversation.isBookmarked ? "star" : "star-outline"}
-                        size={19}
-                        color={conversation.isBookmarked ? colors.warning : colors.textSecondary}
-                      />
-                    </Pressable>
-                    <Pressable
-                      onPress={() => confirmDelete(conversation)}
-                      hitSlop={8}
-                      accessibilityRole="button"
-                      accessibilityLabel="Delete conversation"
-                    >
-                      <Icon name="trash-outline" size={19} color={colors.danger} />
-                    </Pressable>
-                  </View>
-                }
-              />
+                  }
+                  className="flex-1"
+                />
+                <Pressable
+                  onPress={() => handleToggleBookmark(conversation.id)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel={conversation.isBookmarked ? "Remove bookmark" : "Bookmark conversation"}
+                  className="ml-2"
+                >
+                  <Icon
+                    name={conversation.isBookmarked ? "star" : "star-outline"}
+                    size={19}
+                    color={conversation.isBookmarked ? colors.warning : colors.textSecondary}
+                  />
+                </Pressable>
+                <Pressable
+                  onPress={() => confirmDelete(conversation)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Delete conversation"
+                  className="ml-2 mr-3"
+                >
+                  <Icon name="trash-outline" size={19} color={colors.danger} />
+                </Pressable>
+              </View>
             </React.Fragment>
           ))}
         </Card>

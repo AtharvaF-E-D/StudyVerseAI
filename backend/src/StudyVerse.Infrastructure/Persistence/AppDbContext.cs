@@ -34,6 +34,10 @@ public class AppDbContext : DbContext, IAppDbContext
 
     public DbSet<QuizSessionQuestion> QuizSessionQuestions => Set<QuizSessionQuestion>();
 
+    public DbSet<Note> Notes => Set<Note>();
+
+    public DbSet<NoteContent> NoteContents => Set<NoteContent>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
