@@ -384,6 +384,19 @@ export function DashboardContent({
         </Card>
       </View>
 
+      {/* Mock Tests entry point */}
+      <View className="mb-6">
+        <Card>
+          <ListItem
+            leading={<Icon name="school" size={22} color={colors.success} />}
+            title="Mock Tests"
+            subtitle="Take a timed practice exam and see how you rank"
+            trailing={<Icon name="chevron-forward" size={18} color={colors.textSecondary} />}
+            onPress={() => router.push("/(app)/mocktests")}
+          />
+        </Card>
+      </View>
+
       {/* Continue learning / AI recommendations — intentionally honest: no feature produces this data yet. */}
       <View>
         <SectionTitle>Continue learning</SectionTitle>

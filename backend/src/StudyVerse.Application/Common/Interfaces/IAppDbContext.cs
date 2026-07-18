@@ -41,5 +41,9 @@ public interface IAppDbContext
 
     DbSet<Flashcard> Flashcards { get; }
 
+    DbSet<MockTestAttempt> MockTestAttempts { get; }
+
+    DbSet<MockTestAttemptAnswer> MockTestAttemptAnswers { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

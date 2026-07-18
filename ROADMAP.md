@@ -11,7 +11,7 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | 5 | Rapid Fire Quiz | ✅ | 90 real seeded questions across 5 categories × 3 difficulties, lives/combo/scoring/power-ups/daily-challenge, anti-repetition question selection, review screen — built and verified (backend rigorously via live curl walkthrough, mobile via live UI screenshots + independent typecheck/lint) |
 | 6 | AI Notes | ✅ (scoped, backend only) | PDF (PdfPig)/DOCX (OpenXml)/image (OpenAI vision) upload → local-disk storage (cloud-swappable via `IFileStorageService`) → one structured-JSON OpenAI call generating summary, key points, flashcards, mcqs, mind-map outline, revision sheet, vocabulary, formulas — built and verified end-to-end with a real uploaded PDF and a real OpenAI response. PPTX support and a mobile UI deliberately deferred — time-boxed, not oversights |
 | 7 | Flashcards | ✅ | AI-generated + manual decks, real SM-2 spaced repetition, sharing, favorites, daily review queue — built and verified end-to-end through the real live UI |
-| 8 | Mock Tests | ⬜ | |
+| 8 | Mock Tests | ✅ | timed exams over the Phase 5 question bank, real percentile/rank, AI weakness analysis, review — built and verified end-to-end through the real live UI |
 | 9 | Study Planner | ⬜ | |
 | 10 | Current Affairs | ⬜ | |
 | 11 | Coding Practice | ⬜ | |
@@ -128,6 +128,17 @@ Deliberately NOT built this pass (time-boxed, not oversights): PPTX support.
 - [x] Verified end-to-end through the real live UI: generated a real AI deck ("Spanish Basics" — real, correct Spanish phrases), reviewed a card through Good→Good→Easy→Again and watched the exact hand-verified SM-2 math play out (ease factor 2.5→2.5→2.6→1.8, interval 1→6→15→reset), confirmed the due queue correctly dropped the reviewed card, shared a deck and fetched it with zero auth headers, flipped a real generated card in the mobile UI and saw the rating buttons
 
 Deliberately NOT built this pass: a dedicated public (unauthenticated) "shared deck" viewer screen on mobile — the share/unshare toggle and the `getSharedDeck` API client function are fully implemented, just no standalone viewing screen for a token-holder without an account yet.
+
+## Phase 8 — Mock Tests
+
+- [x] 5 exam templates (`MockTestCatalog`, stable hardcoded GUIDs) layered over the existing Phase 5 question bank — no new question content needed
+- [x] Real percentile/rank via a mean-rank formula that correctly handles ties (`(strictly-lower + 0.5×tied) / totalOthers × 100`), verified live across two real users on the same template (60% scorer → percentile 100 as the first attempt, a 33% scorer → 0, a later 60% tie → 75, matching the formula exactly)
+- [x] Real AI-generated weakness analysis (reuses the existing `IAiChatProvider` from Phase 4 — no new AI provider needed) built from the actual wrong answers grouped by category
+- [x] Free question navigation (unlike Rapid Fire Quiz's linear flow), a single overall exam timer with auto-submit-on-timeout, confirm-before-submit-with-unanswered-questions, and a full review screen
+- [x] 23 new backend unit tests (182/182 total)
+- [x] Mobile: templates/history screen, exam-taking screen (timer banner, question navigator dots for answered/current/unanswered), results screen (percentile framing + AI analysis), review screen, "Mock Tests" dashboard entry point
+
+**Real bug caught and fixed by actually driving the live UI (not just fixtures or curl):** the mobile client's `MockTestAttemptListItemDto` typed the attempt identifier as `id`, but the real backend's DTO names it `AttemptId` (→ `attemptId` in JSON) — a genuine contract mismatch, not a naming nitpick. It surfaced first as a React "missing key" warning on the past-attempts list, but the real consequence was worse: tapping a past attempt navigated to `/mocktests/undefined/results`, a completely broken feature, since the mobile agent had built and verified this screen only against fixtures (the backend wasn't reachable yet at the time). Root-caused via a live Playwright run capturing the actual console arguments and a temporary in-component diagnostic log, then fixed by renaming the field to `attemptId` everywhere it's used on the mobile side and re-verified live. This is exactly the class of bug independent live-UI verification exists to catch — a mismatch two separately-built, individually-correct halves can only produce together.
 
 ## Explicit non-goals for Phase 1 (unchanged, still true)
 

@@ -13,14 +13,25 @@ export interface QuizReviewItemProps {
   selectedOptionIndex: number | null;
   correctOptionIndex: number;
   explanation: string;
+  /**
+   * Badge label shown when `selectedOptionIndex` is null. Defaults to the
+   * Rapid Fire Quiz's own wording ("Timed out" — its per-question timer is
+   * the only way a question there goes unanswered). Callers whose "no
+   * answer" case isn't a timeout — e.g. Mock Tests, where free navigation
+   * between questions means a question can simply be skipped — should pass
+   * something like "Unanswered" instead.
+   */
+  unansweredLabel?: string;
   className?: string;
 }
 
 /**
  * One reviewed question: the prompt, every option (the correct one and any
  * incorrectly-selected one visually distinguished), and the explanation.
- * Used by both the real review screen (`app/(app)/quiz/[sessionId]/review.tsx`)
- * and the `(dev)/quiz-preview` fixture screen.
+ * Used by the real review screens for both Rapid Fire Quiz
+ * (`app/(app)/quiz/[sessionId]/review.tsx`) and Mock Tests
+ * (`app/(app)/mocktests/[attemptId]/review.tsx`), which share the exact same
+ * per-question review shape, plus both features' `(dev)` fixture screens.
  */
 export function QuizReviewItem({
   index,
@@ -29,6 +40,7 @@ export function QuizReviewItem({
   selectedOptionIndex,
   correctOptionIndex,
   explanation,
+  unansweredLabel = "Timed out",
   className = "",
 }: QuizReviewItemProps) {
   const { colors } = useTheme();
@@ -38,11 +50,11 @@ export function QuizReviewItem({
   return (
     <Card className={className}>
       <View className="mb-3 flex-row items-start justify-between">
-        <Text className="mr-3 flex-1 text-bodyMedium text-ink-primary dark:text-ink-primary-dark">
+        <Text className="mr-3 flex-1 text-body font-medium text-ink-primary dark:text-ink-primary-dark">
           {index + 1}. {questionText}
         </Text>
         <Badge
-          label={isCorrect ? "Correct" : wasAnswered ? "Incorrect" : "Timed out"}
+          label={isCorrect ? "Correct" : wasAnswered ? "Incorrect" : unansweredLabel}
           variant={isCorrect ? "success" : "danger"}
         />
       </View>
