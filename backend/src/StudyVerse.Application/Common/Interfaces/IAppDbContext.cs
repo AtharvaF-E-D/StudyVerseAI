@@ -49,5 +49,13 @@ public interface IAppDbContext
 
     DbSet<StudyPlanTask> StudyPlanTasks { get; }
 
+    DbSet<NewsArticle> NewsArticles { get; }
+
+    DbSet<NewsBookmark> NewsBookmarks { get; }
+
+    DbSet<NewsArticleQuiz> NewsArticleQuizzes { get; }
+
+    DbSet<WeeklyDigest> WeeklyDigests { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

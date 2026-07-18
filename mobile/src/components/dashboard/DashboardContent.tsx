@@ -423,6 +423,19 @@ export function DashboardContent({
         </Card>
       </View>
 
+      {/* Current Affairs entry point */}
+      <View className="mb-6">
+        <Card>
+          <ListItem
+            leading={<Icon name="newspaper" size={22} color={colors.accent} />}
+            title="Current Affairs"
+            subtitle="Browse the latest news, then test your understanding"
+            trailing={<Icon name="chevron-forward" size={18} color={colors.textSecondary} />}
+            onPress={() => router.push("/(app)/currentaffairs")}
+          />
+        </Card>
+      </View>
+
       {/* Continue learning / AI recommendations — intentionally honest: no feature produces this data yet. */}
       <View>
         <SectionTitle>Continue learning</SectionTitle>

@@ -99,6 +99,18 @@ try
             "environment variable in Staging/Production).");
     }
 
+    // ---- GNews (Current Affairs) ----
+    // Not a hard startup failure, same reasoning as OpenAI:ApiKey above — GNewsProvider itself
+    // logs and returns an empty list per-request rather than throwing if this is still missing.
+    var gNewsApiKey = builder.Configuration["GNews:ApiKey"];
+    if (string.IsNullOrWhiteSpace(gNewsApiKey))
+    {
+        Log.Warning(
+            "GNews:ApiKey is not configured — Current Affairs endpoints will return no fresh " +
+            "articles until it's set (`dotnet user-secrets set GNews:ApiKey <key>` in Development, " +
+            "or the GNews__ApiKey environment variable in Staging/Production).");
+    }
+
     // ---- Swagger / OpenAPI ----
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>

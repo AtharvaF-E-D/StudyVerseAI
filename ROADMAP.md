@@ -13,7 +13,7 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | 7 | Flashcards | ✅ | AI-generated + manual decks, real SM-2 spaced repetition, sharing, favorites, daily review queue — built and verified end-to-end through the real live UI |
 | 8 | Mock Tests | ✅ | timed exams over the Phase 5 question bank, real percentile/rank, AI weakness analysis, review — built and verified end-to-end through the real live UI |
 | 9 | Study Planner | ✅ | AI day-by-day plan generation with weak-topic weighting, daily/weekly views, automatic missed-task recovery — built and verified end-to-end through the real live UI |
-| 10 | Current Affairs | ⬜ | |
+| 10 | Current Affairs | ✅ | real live news via GNews API, category feed, search, bookmarks, per-article AI comprehension quiz, weekly AI digest — built and verified end-to-end with genuinely live headlines |
 | 11 | Coding Practice | ⬜ | |
 | 12 | Interview Preparation | ⬜ | |
 | 13 | Gamification | ⬜ | minimal primitives (XP, coins, streak, leaderboard) already landed in Phase 3; this phase adds badges, achievements, daily rewards, spin wheel, missions, seasonal events |
@@ -152,6 +152,18 @@ Deliberately NOT built this pass: a dedicated public (unauthenticated) "shared d
 **Real bug caught and fixed by the mobile agent's own live testing (not fixtures):** the shared `coreApiClient`'s 15s axios timeout was killing the create-plan request before real OpenAI generation (which took up to ~70s for a full multi-week plan) could finish — the backend logs showed the client disconnect actually cancelled the server-side OpenAI call too via `HttpContext.RequestAborted`, so no plan was created at all, silently. Fixed with a scoped 120s timeout override on just that one API call, not the shared client default. A good example of why testing against a slow real dependency (not a fast fixture) matters — this would never have surfaced against mocked data.
 
 Deliberately NOT built this pass: a real date-picker (exam date is a validated `yyyy-mm-dd` text field — no date-picker pattern existed anywhere in the app yet to reuse); a visualization specifically calling out which tasks were auto-rescheduled from a missed date (the data — `originalScheduledDateUtc` — is already returned by the API and passed through client-side, just not surfaced in the UI yet).
+
+## Phase 10 — Current Affairs
+
+- [x] Real news via the GNews API (free tier, 12h delay — a real, documented limitation, not a bug), a new `GNewsOptions`/`GNews:ApiKey` config binding mirroring `OpenAiOptions` exactly. `NewsArticle` cache with a 6-hour per-category staleness window (checked before ever calling GNews again) and `ExternalId`-based dedup on refresh
+- [x] Categories (9, matching GNews's real taxonomy), live search (never cached, since query terms are unpredictable), bookmarks, single-article view
+- [x] Per-article AI comprehension quiz (reuses `IAiChatProvider`, no new AI provider) — cache-first per article, verified live that a repeat request for the same article's quiz is instant (0.009s) and returns byte-identical questions vs. the real first-generation call (7.10s)
+- [x] Weekly AI digest, cache-first per ISO week, shared across all users (not per-user) — built from whatever's already cached that week rather than triggering fresh GNews calls just for the digest; a documented "not enough data yet" path instead of fabricating a summary when nothing's cached
+- [x] 22 new backend unit tests (252/252 total)
+- [x] Mobile: news feed (categories, digest teaser, search), article detail, per-article quiz screen, bookmarks screen, "Current Affairs" dashboard entry point
+- [x] Verified end-to-end through the real live UI with genuinely live headlines (not fixtures) — a real feed of actual current news (matching what a live GNews query returns), bookmarked a real article, read its full real content, and generated (and viewed) a real AI quiz question directly testing comprehension of that specific article's actual content
+
+**Deliberately did not fabricate AI "current events"**: the honest per-article description shown in the feed is GNews's own real description field, not an AI-generated summary — inventing per-article AI summaries of news content would risk quietly drifting from what the source article actually says, which matters more for a "current affairs" feature than almost anywhere else in the app.
 
 ## Explicit non-goals for Phase 1 (unchanged, still true)
 

@@ -52,6 +52,7 @@ public static class DependencyInjection
         services.Configure<AiOptions>(configuration.GetSection(AiOptions.SectionName));
         services.Configure<OpenAiOptions>(configuration.GetSection(OpenAiOptions.SectionName));
         services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));
+        services.Configure<GNewsOptions>(configuration.GetSection(GNewsOptions.SectionName));
 
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
@@ -83,6 +84,13 @@ public static class DependencyInjection
 
         // Same lazy-API-key-resolution reasoning as IAiChatProvider above.
         services.AddSingleton<IFlashcardGenerationProvider, OpenAiFlashcardGenerationProvider>();
+
+        services.AddHttpClient(nameof(GNewsProvider), client =>
+        {
+            client.BaseAddress = new Uri("https://gnews.io/api/v4/");
+            client.Timeout = TimeSpan.FromSeconds(15);
+        });
+        services.AddSingleton<IGNewsProvider, GNewsProvider>();
 
         return services;
     }
