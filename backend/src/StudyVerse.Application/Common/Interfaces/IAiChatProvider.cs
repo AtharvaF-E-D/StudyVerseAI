@@ -11,7 +11,21 @@ namespace StudyVerse.Application.Common.Interfaces;
 /// </summary>
 public interface IAiChatProvider
 {
-    Task<AiChatResult> GetCompletionAsync(IReadOnlyList<AiChatMessage> history, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// <paramref name="requireJsonObjectResponse"/> requests OpenAI's structured JSON response mode
+    /// (<c>ChatResponseFormat.CreateJsonObjectFormat()</c> — the same mechanism
+    /// <c>OpenAiNoteGenerationProvider</c>/<c>OpenAiFlashcardGenerationProvider</c> use) instead of
+    /// free-form prose, for callers that need a machine-parseable reply (e.g. the Study Planner's AI
+    /// plan generation) rather than a tutoring answer. This is the one knob added on top of the
+    /// fixed tutoring system prompt — callers still can't override that persona, only ask for its
+    /// output to be shaped as JSON. Deliberately placed after <paramref name="cancellationToken"/>,
+    /// not before it (the more usual spot for a non-cancellation parameter), purely so the existing
+    /// call sites that already pass <c>cancellationToken</c> positionally keep compiling unchanged.
+    /// </summary>
+    Task<AiChatResult> GetCompletionAsync(
+        IReadOnlyList<AiChatMessage> history,
+        CancellationToken cancellationToken = default,
+        bool requireJsonObjectResponse = false);
 
     /// <summary>
     /// Makes one additional lightweight completion call to suggest 2-3 short, natural follow-up

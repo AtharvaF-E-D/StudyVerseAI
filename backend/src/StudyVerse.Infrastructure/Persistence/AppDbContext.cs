@@ -46,6 +46,10 @@ public class AppDbContext : DbContext, IAppDbContext
 
     public DbSet<MockTestAttemptAnswer> MockTestAttemptAnswers => Set<MockTestAttemptAnswer>();
 
+    public DbSet<StudyPlan> StudyPlans => Set<StudyPlan>();
+
+    public DbSet<StudyPlanTask> StudyPlanTasks => Set<StudyPlanTask>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);

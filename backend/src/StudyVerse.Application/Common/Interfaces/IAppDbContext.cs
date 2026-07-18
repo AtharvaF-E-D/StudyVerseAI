@@ -45,5 +45,9 @@ public interface IAppDbContext
 
     DbSet<MockTestAttemptAnswer> MockTestAttemptAnswers { get; }
 
+    DbSet<StudyPlan> StudyPlans { get; }
+
+    DbSet<StudyPlanTask> StudyPlanTasks { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -51,6 +51,10 @@ public sealed class TestAppDbContext : DbContext, IAppDbContext
 
     public DbSet<MockTestAttemptAnswer> MockTestAttemptAnswers => Set<MockTestAttemptAnswer>();
 
+    public DbSet<StudyPlan> StudyPlans => Set<StudyPlan>();
+
+    public DbSet<StudyPlanTask> StudyPlanTasks => Set<StudyPlanTask>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Mirror the real Infrastructure configurations' handling of get-only computed properties.

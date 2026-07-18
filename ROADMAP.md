@@ -12,7 +12,7 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | 6 | AI Notes | ✅ (scoped, backend only) | PDF (PdfPig)/DOCX (OpenXml)/image (OpenAI vision) upload → local-disk storage (cloud-swappable via `IFileStorageService`) → one structured-JSON OpenAI call generating summary, key points, flashcards, mcqs, mind-map outline, revision sheet, vocabulary, formulas — built and verified end-to-end with a real uploaded PDF and a real OpenAI response. PPTX support and a mobile UI deliberately deferred — time-boxed, not oversights |
 | 7 | Flashcards | ✅ | AI-generated + manual decks, real SM-2 spaced repetition, sharing, favorites, daily review queue — built and verified end-to-end through the real live UI |
 | 8 | Mock Tests | ✅ | timed exams over the Phase 5 question bank, real percentile/rank, AI weakness analysis, review — built and verified end-to-end through the real live UI |
-| 9 | Study Planner | ⬜ | |
+| 9 | Study Planner | ✅ | AI day-by-day plan generation with weak-topic weighting, daily/weekly views, automatic missed-task recovery — built and verified end-to-end through the real live UI |
 | 10 | Current Affairs | ⬜ | |
 | 11 | Coding Practice | ⬜ | |
 | 12 | Interview Preparation | ⬜ | |
@@ -139,6 +139,19 @@ Deliberately NOT built this pass: a dedicated public (unauthenticated) "shared d
 - [x] Mobile: templates/history screen, exam-taking screen (timer banner, question navigator dots for answered/current/unanswered), results screen (percentile framing + AI analysis), review screen, "Mock Tests" dashboard entry point
 
 **Real bug caught and fixed by actually driving the live UI (not just fixtures or curl):** the mobile client's `MockTestAttemptListItemDto` typed the attempt identifier as `id`, but the real backend's DTO names it `AttemptId` (→ `attemptId` in JSON) — a genuine contract mismatch, not a naming nitpick. It surfaced first as a React "missing key" warning on the past-attempts list, but the real consequence was worse: tapping a past attempt navigated to `/mocktests/undefined/results`, a completely broken feature, since the mobile agent had built and verified this screen only against fixtures (the backend wasn't reachable yet at the time). Root-caused via a live Playwright run capturing the actual console arguments and a temporary in-component diagnostic log, then fixed by renaming the field to `attemptId` everywhere it's used on the mobile side and re-verified live. This is exactly the class of bug independent live-UI verification exists to catch — a mismatch two separately-built, individually-correct halves can only produce together.
+
+## Phase 9 — Study Planner
+
+- [x] `StudyPlan`/`StudyPlanTask` entities; only one `Active` plan per user (creating a new one archives the prior one); `IAiChatProvider` extended with an optional JSON-mode flag (backward-compatible, existing call sites untouched — 230/230 tests confirm no regression) rather than building a new AI provider abstraction
+- [x] Real AI day-by-day plan generation weighting weak topics more heavily — verified live: weak-topic sessions averaged 57.5 min vs 34.3 min for non-weak sessions across a real 33-task generated plan; a 60-day generation horizon cap with out-of-range-date filtering on the AI's response
+- [x] Automatic missed-task recovery (`MissedTaskRecoveryService`) — runs transparently on every today/active-plan fetch, no manual trigger needed; verified live by moving a real task's date into the past via direct DB manipulation and confirming it self-healed into a new task on the nearest day with spare capacity, preserving the original date
+- [x] 48 new backend unit tests (230/230 total)
+- [x] Mobile: plan setup form (exam date, subjects, weak topics, daily budget), plan overview (progress, today's tasks with weak-topic badges and one-tap completion), weekly view (day-grouped, Previous/Next navigation), "Study Planner" dashboard entry point
+- [x] Verified end-to-end through the real live UI: created a real plan, watched a real ~27s AI generation complete, completed a task and watched the progress percentage update live, viewed the weekly view showing the full real AI-generated schedule grouped correctly by day
+
+**Real bug caught and fixed by the mobile agent's own live testing (not fixtures):** the shared `coreApiClient`'s 15s axios timeout was killing the create-plan request before real OpenAI generation (which took up to ~70s for a full multi-week plan) could finish — the backend logs showed the client disconnect actually cancelled the server-side OpenAI call too via `HttpContext.RequestAborted`, so no plan was created at all, silently. Fixed with a scoped 120s timeout override on just that one API call, not the shared client default. A good example of why testing against a slow real dependency (not a fast fixture) matters — this would never have surfaced against mocked data.
+
+Deliberately NOT built this pass: a real date-picker (exam date is a validated `yyyy-mm-dd` text field — no date-picker pattern existed anywhere in the app yet to reuse); a visualization specifically calling out which tasks were auto-rescheduled from a missed date (the data — `originalScheduledDateUtc` — is already returned by the API and passed through client-side, just not surfaced in the UI yet).
 
 ## Explicit non-goals for Phase 1 (unchanged, still true)
 

@@ -16,6 +16,7 @@ import {
   useMarkNotificationReadMutation,
 } from "../../src/hooks/useDashboard";
 import { useFlashcardStatsQuery } from "../../src/hooks/useFlashcards";
+import { useActivePlanQuery, useTodayTasksQuery } from "../../src/hooks/useStudyPlanner";
 
 /**
  * Authenticated home screen: streak/xp/coins summary, today's challenges,
@@ -34,6 +35,8 @@ export default function AppHomeScreen() {
 
   const dashboardQuery = useDashboardQuery();
   const flashcardStatsQuery = useFlashcardStatsQuery();
+  const activePlanQuery = useActivePlanQuery();
+  const todayTasksQuery = useTodayTasksQuery(!!activePlanQuery.data);
   const completeChallengeMutation = useCompleteChallengeMutation();
   const markNotificationReadMutation = useMarkNotificationReadMutation();
 
@@ -104,6 +107,14 @@ export default function AppHomeScreen() {
             markNotificationReadMutation.isPending ? (markNotificationReadMutation.variables ?? null) : null
           }
           flashcardsDueToday={flashcardStatsQuery.data?.dueToday ?? 0}
+          studyPlanSummary={
+            activePlanQuery.data
+              ? {
+                  daysRemaining: activePlanQuery.data.daysRemaining,
+                  todayTaskCount: todayTasksQuery.data?.length ?? 0,
+                }
+              : undefined
+          }
         />
       )}
     </ScreenContainer>

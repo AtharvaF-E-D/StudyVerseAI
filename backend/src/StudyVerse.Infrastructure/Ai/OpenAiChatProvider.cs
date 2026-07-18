@@ -49,12 +49,19 @@ public sealed partial class OpenAiChatProvider : IAiChatProvider
         _chatClient = new ChatClient(aiOptions.Value.Model, apiKey);
     }
 
-    public async Task<AiChatResult> GetCompletionAsync(IReadOnlyList<AiChatMessage> history, CancellationToken cancellationToken = default)
+    public async Task<AiChatResult> GetCompletionAsync(
+        IReadOnlyList<AiChatMessage> history,
+        CancellationToken cancellationToken = default,
+        bool requireJsonObjectResponse = false)
     {
         var messages = new List<ChatMessage> { ChatMessage.CreateSystemMessage(SystemPrompt) };
         messages.AddRange(history.Select(ToChatMessage));
 
-        var response = await _chatClient.CompleteChatAsync(messages, options: null, cancellationToken);
+        var options = requireJsonObjectResponse
+            ? new ChatCompletionOptions { ResponseFormat = ChatResponseFormat.CreateJsonObjectFormat() }
+            : null;
+
+        var response = await _chatClient.CompleteChatAsync(messages, options, cancellationToken);
         var completion = response.Value;
 
         var content = string.Concat(completion.Content.Select(part => part.Text));

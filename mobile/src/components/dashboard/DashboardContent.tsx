@@ -35,6 +35,14 @@ export interface DashboardContentProps {
    * presentational (same reason every other field here arrives via props).
    */
   flashcardsDueToday?: number;
+  /**
+   * Active study plan snapshot for the "Study Planner" entry point, from a
+   * separate `useActivePlanQuery()`/`useTodayTasksQuery()` pair in
+   * `app/(app)/index.tsx` — same reasoning as `flashcardsDueToday` above.
+   * `undefined` covers both "still loading" and "no active plan yet", both
+   * of which render the same "create a plan" prompt.
+   */
+  studyPlanSummary?: { daysRemaining: number; todayTaskCount: number };
 }
 
 function SectionTitle({ children, trailing }: { children: string; trailing?: string }) {
@@ -76,6 +84,7 @@ export function DashboardContent({
   onMarkNotificationRead,
   markingNotificationId = null,
   flashcardsDueToday = 0,
+  studyPlanSummary,
 }: DashboardContentProps) {
   const { colors } = useTheme();
 
@@ -393,6 +402,23 @@ export function DashboardContent({
             subtitle="Take a timed practice exam and see how you rank"
             trailing={<Icon name="chevron-forward" size={18} color={colors.textSecondary} />}
             onPress={() => router.push("/(app)/mocktests")}
+          />
+        </Card>
+      </View>
+
+      {/* Study Planner entry point */}
+      <View className="mb-6">
+        <Card>
+          <ListItem
+            leading={<Icon name="calendar" size={22} color={colors.success} />}
+            title="Study Planner"
+            subtitle={
+              studyPlanSummary
+                ? `${studyPlanSummary.daysRemaining} day${studyPlanSummary.daysRemaining === 1 ? "" : "s"} left · ${studyPlanSummary.todayTaskCount} task${studyPlanSummary.todayTaskCount === 1 ? "" : "s"} today`
+                : "Create an AI-generated day-by-day study plan"
+            }
+            trailing={<Icon name="chevron-forward" size={18} color={colors.textSecondary} />}
+            onPress={() => router.push("/(app)/studyplanner")}
           />
         </Card>
       </View>

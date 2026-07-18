@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using StudyVerse.Application.Common.Behaviors;
 using StudyVerse.Application.Common.Interfaces;
 using StudyVerse.Application.Common.Services;
+using StudyVerse.Application.Features.StudyPlanner.Common;
 
 namespace StudyVerse.Application;
 
@@ -26,6 +27,11 @@ public static class DependencyInjection
         services.AddAutoMapper(cfg => cfg.AddMaps(applicationAssembly));
 
         services.AddScoped<IStreakService, StreakService>();
+
+        // Plain concrete class, not behind an interface (see its own doc comment for why) - the
+        // Study Planner's missed-task recovery pass, injected directly by GetTodayTasksQueryHandler
+        // and GetActivePlanQueryHandler.
+        services.AddScoped<MissedTaskRecoveryService>();
 
         return services;
     }
