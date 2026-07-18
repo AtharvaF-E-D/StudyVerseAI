@@ -38,6 +38,10 @@ public class AppDbContext : DbContext, IAppDbContext
 
     public DbSet<NoteContent> NoteContents => Set<NoteContent>();
 
+    public DbSet<FlashcardDeck> FlashcardDecks => Set<FlashcardDeck>();
+
+    public DbSet<Flashcard> Flashcards => Set<Flashcard>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);

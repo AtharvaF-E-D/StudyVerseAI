@@ -15,6 +15,7 @@ import {
   useDashboardQuery,
   useMarkNotificationReadMutation,
 } from "../../src/hooks/useDashboard";
+import { useFlashcardStatsQuery } from "../../src/hooks/useFlashcards";
 
 /**
  * Authenticated home screen: streak/xp/coins summary, today's challenges,
@@ -32,6 +33,7 @@ export default function AppHomeScreen() {
   const { show } = useToast();
 
   const dashboardQuery = useDashboardQuery();
+  const flashcardStatsQuery = useFlashcardStatsQuery();
   const completeChallengeMutation = useCompleteChallengeMutation();
   const markNotificationReadMutation = useMarkNotificationReadMutation();
 
@@ -101,6 +103,7 @@ export default function AppHomeScreen() {
           markingNotificationId={
             markNotificationReadMutation.isPending ? (markNotificationReadMutation.variables ?? null) : null
           }
+          flashcardsDueToday={flashcardStatsQuery.data?.dueToday ?? 0}
         />
       )}
     </ScreenContainer>

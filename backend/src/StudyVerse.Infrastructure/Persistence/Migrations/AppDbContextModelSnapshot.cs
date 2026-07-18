@@ -86,6 +86,95 @@ namespace StudyVerse.Infrastructure.Persistence.Migrations
                     b.ToTable("conversations", (string)null);
                 });
 
+            modelBuilder.Entity("StudyVerse.Domain.Entities.Flashcard", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BackText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("DeckId")
+                        .HasColumnType("uuid");
+
+                    b.Property<double>("EaseFactor")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("FrontText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<int>("IntervalDays")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("LastReviewedAtUtc")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<DateOnly>("NextReviewDateUtc")
+                        .HasColumnType("date");
+
+                    b.Property<int>("Repetitions")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeckId", "NextReviewDateUtc");
+
+                    b.ToTable("flashcards", (string)null);
+                });
+
+            modelBuilder.Entity("StudyVerse.Domain.Entities.FlashcardDeck", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<bool>("IsFavorite")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ShareToken")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid?>("SourceNoteId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ShareToken")
+                        .IsUnique();
+
+                    b.HasIndex("SourceNoteId");
+
+                    b.HasIndex("UserId", "CreatedAtUtc");
+
+                    b.ToTable("flashcard_decks", (string)null);
+                });
+
             modelBuilder.Entity("StudyVerse.Domain.Entities.Message", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1932,6 +2021,35 @@ namespace StudyVerse.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("StudyVerse.Domain.Entities.Flashcard", b =>
+                {
+                    b.HasOne("StudyVerse.Domain.Entities.FlashcardDeck", "Deck")
+                        .WithMany("Cards")
+                        .HasForeignKey("DeckId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Deck");
+                });
+
+            modelBuilder.Entity("StudyVerse.Domain.Entities.FlashcardDeck", b =>
+                {
+                    b.HasOne("StudyVerse.Domain.Entities.Note", "SourceNote")
+                        .WithMany()
+                        .HasForeignKey("SourceNoteId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("StudyVerse.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SourceNote");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("StudyVerse.Domain.Entities.Message", b =>
                 {
                     b.HasOne("StudyVerse.Domain.Entities.Conversation", "Conversation")
@@ -2042,6 +2160,11 @@ namespace StudyVerse.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("StudyVerse.Domain.Entities.Conversation", b =>
                 {
                     b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("StudyVerse.Domain.Entities.FlashcardDeck", b =>
+                {
+                    b.Navigation("Cards");
                 });
 
             modelBuilder.Entity("StudyVerse.Domain.Entities.Note", b =>

@@ -81,6 +81,9 @@ public static class DependencyInjection
         services.AddSingleton<INoteGenerationProvider, OpenAiNoteGenerationProvider>();
         services.AddSingleton<ITextExtractionService, DocumentTextExtractionService>();
 
+        // Same lazy-API-key-resolution reasoning as IAiChatProvider above.
+        services.AddSingleton<IFlashcardGenerationProvider, OpenAiFlashcardGenerationProvider>();
+
         return services;
     }
 }

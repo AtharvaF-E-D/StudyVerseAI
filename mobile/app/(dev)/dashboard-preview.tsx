@@ -159,7 +159,17 @@ function stubLogout() {
   Alert.alert("Dev preview", "Logout is not wired up in this preview screen.");
 }
 
-function FixtureSection({ title, data, currentUserId }: { title: string; data: DashboardResponse; currentUserId: string }) {
+function FixtureSection({
+  title,
+  data,
+  currentUserId,
+  flashcardsDueToday,
+}: {
+  title: string;
+  data: DashboardResponse;
+  currentUserId: string;
+  flashcardsDueToday: number;
+}) {
   return (
     <View className="mb-10">
       <Text className="mb-4 text-heading text-ink-primary dark:text-ink-primary-dark">{title}</Text>
@@ -170,6 +180,7 @@ function FixtureSection({ title, data, currentUserId }: { title: string; data: D
         onLogout={stubLogout}
         onCompleteChallenge={noop}
         onMarkNotificationRead={noop}
+        flashcardsDueToday={flashcardsDueToday}
       />
     </View>
   );
@@ -195,8 +206,18 @@ export default function DashboardPreviewScreen() {
         />
       </View>
 
-      <FixtureSection title="Fixture: mid-progress user" data={MID_PROGRESS_FIXTURE} currentUserId="me" />
-      <FixtureSection title="Fixture: empty / fresh user" data={EMPTY_FIXTURE} currentUserId="fresh-user" />
+      <FixtureSection
+        title="Fixture: mid-progress user"
+        data={MID_PROGRESS_FIXTURE}
+        currentUserId="me"
+        flashcardsDueToday={6}
+      />
+      <FixtureSection
+        title="Fixture: empty / fresh user"
+        data={EMPTY_FIXTURE}
+        currentUserId="fresh-user"
+        flashcardsDueToday={0}
+      />
     </ScreenContainer>
   );
 }

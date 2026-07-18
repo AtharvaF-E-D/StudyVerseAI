@@ -10,7 +10,7 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | 4 | AI Tutor | ✅ (scoped) | real OpenAI (gpt-4o-mini) chat, conversation history/search/bookmarks, offline KaTeX math + code rendering, daily token cap. Voice input/output, OCR/image understanding, and true token streaming deliberately deferred — time-boxed, not oversights |
 | 5 | Rapid Fire Quiz | ✅ | 90 real seeded questions across 5 categories × 3 difficulties, lives/combo/scoring/power-ups/daily-challenge, anti-repetition question selection, review screen — built and verified (backend rigorously via live curl walkthrough, mobile via live UI screenshots + independent typecheck/lint) |
 | 6 | AI Notes | ✅ (scoped, backend only) | PDF (PdfPig)/DOCX (OpenXml)/image (OpenAI vision) upload → local-disk storage (cloud-swappable via `IFileStorageService`) → one structured-JSON OpenAI call generating summary, key points, flashcards, mcqs, mind-map outline, revision sheet, vocabulary, formulas — built and verified end-to-end with a real uploaded PDF and a real OpenAI response. PPTX support and a mobile UI deliberately deferred — time-boxed, not oversights |
-| 7 | Flashcards | ⬜ | |
+| 7 | Flashcards | ✅ | AI-generated + manual decks, real SM-2 spaced repetition, sharing, favorites, daily review queue — built and verified end-to-end through the real live UI |
 | 8 | Mock Tests | ⬜ | |
 | 9 | Study Planner | ⬜ | |
 | 10 | Current Affairs | ⬜ | |
@@ -117,6 +117,17 @@ One known gap worth fixing before this ships for real: on a client-side timeout,
 Deliberately NOT built this pass (time-boxed, not oversights): PPTX support.
 
 **Real bug caught and fixed by actually driving the live UI (not just fixtures):** the notes list and the Phase 4 tutor conversation list both nested an interactive `Pressable` (delete / bookmark buttons) inside `ListItem`'s `trailing` slot while `ListItem` itself was also `onPress`-active — on web this renders as a literal `<button>` containing another `<button>`, which is invalid HTML that real browsers warn about and can mishandle click-wise. Fixed in both screens by moving the extra buttons to be siblings of `ListItem` instead of children of its `trailing` slot. Worth checking any future `ListItem` usage for the same trap.
+
+## Phase 7 — Flashcards
+
+- [x] `FlashcardDeck`/`Flashcard` entities; real SM-2 spaced-repetition scheduler (`Domain/SpacedRepetition/Sm2Scheduler.cs`) — ease-factor floor 1.3, standard interval progression 1→6→previous×easeFactor, resets on a failed review; a 4-point client scale (Again/Hard/Good/Easy) mapped directly onto SM-2 quality points 0/3/4/5
+- [x] Three ways to build a deck: manual (blank + add cards), AI-generated from a topic (`IFlashcardGenerationProvider`/`OpenAiFlashcardGenerationProvider`, one structured-JSON OpenAI call), or copied from an existing Phase 6 note's already-AI-generated flashcards (no extra OpenAI call needed)
+- [x] Cross-deck daily review queue (`GET /due`), public no-auth deck sharing (`GET /shared/{token}`, `[AllowAnonymous]`), favorites, per-deck and aggregate stats
+- [x] 53 new backend unit tests (159/159 total) — thorough SM-2 scenario coverage (Good/Good/Good, Easy, Hard, Again-resets, floor enforcement) plus ownership/date-filtering/no-auth-share/generate-from-note validation
+- [x] Mobile: deck list (stats strip, due-today CTA, favorite stars), deck detail (cards, add/edit/delete, share toggle), review session with a Reanimated 3D card-flip and 4 color-coded rating buttons, "Flashcards" dashboard entry point with a due-count badge
+- [x] Verified end-to-end through the real live UI: generated a real AI deck ("Spanish Basics" — real, correct Spanish phrases), reviewed a card through Good→Good→Easy→Again and watched the exact hand-verified SM-2 math play out (ease factor 2.5→2.5→2.6→1.8, interval 1→6→15→reset), confirmed the due queue correctly dropped the reviewed card, shared a deck and fetched it with zero auth headers, flipped a real generated card in the mobile UI and saw the rating buttons
+
+Deliberately NOT built this pass: a dedicated public (unauthenticated) "shared deck" viewer screen on mobile — the share/unshare toggle and the `getSharedDeck` API client function are fully implemented, just no standalone viewing screen for a token-holder without an account yet.
 
 ## Explicit non-goals for Phase 1 (unchanged, still true)
 

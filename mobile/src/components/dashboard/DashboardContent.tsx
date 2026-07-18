@@ -26,6 +26,15 @@ export interface DashboardContentProps {
   onMarkNotificationRead: (notificationId: string) => void;
   /** Id of the notification currently being marked read, if any. */
   markingNotificationId?: string | null;
+  /**
+   * Count of flashcards due for review today, for the "Flashcards" entry
+   * point's badge. Comes from a separate `useFlashcardStatsQuery()` call in
+   * `app/(app)/index.tsx` rather than `DashboardResponse` itself — flashcards
+   * is its own feature area/backend contract, not part of the dashboard
+   * payload — so it's threaded in as a prop to keep this component purely
+   * presentational (same reason every other field here arrives via props).
+   */
+  flashcardsDueToday?: number;
 }
 
 function SectionTitle({ children, trailing }: { children: string; trailing?: string }) {
@@ -66,6 +75,7 @@ export function DashboardContent({
   completingChallengeId = null,
   onMarkNotificationRead,
   markingNotificationId = null,
+  flashcardsDueToday = 0,
 }: DashboardContentProps) {
   const { colors } = useTheme();
 
@@ -350,6 +360,26 @@ export function DashboardContent({
             subtitle="Turn a document or photo into a summary, flashcards, and more"
             trailing={<Icon name="chevron-forward" size={18} color={colors.textSecondary} />}
             onPress={() => router.push("/(app)/notes")}
+          />
+        </Card>
+      </View>
+
+      {/* Flashcards entry point */}
+      <View className="mb-6">
+        <Card>
+          <ListItem
+            leading={<Icon name="albums" size={22} color={colors.brand} />}
+            title="Flashcards"
+            subtitle="Create decks and review with spaced repetition"
+            trailing={
+              <View className="flex-row items-center">
+                {flashcardsDueToday > 0 ? (
+                  <Badge label={`${flashcardsDueToday} due`} variant="brand" className="mr-2" />
+                ) : null}
+                <Icon name="chevron-forward" size={18} color={colors.textSecondary} />
+              </View>
+            }
+            onPress={() => router.push("/(app)/flashcards")}
           />
         </Card>
       </View>

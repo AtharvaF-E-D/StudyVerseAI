@@ -43,6 +43,10 @@ public sealed class TestAppDbContext : DbContext, IAppDbContext
 
     public DbSet<NoteContent> NoteContents => Set<NoteContent>();
 
+    public DbSet<FlashcardDeck> FlashcardDecks => Set<FlashcardDeck>();
+
+    public DbSet<Flashcard> Flashcards => Set<Flashcard>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Mirror the real Infrastructure configurations' handling of get-only computed properties.
