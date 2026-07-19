@@ -63,5 +63,13 @@ public interface IAppDbContext
 
     DbSet<CodeSubmission> CodeSubmissions { get; }
 
+    DbSet<InterviewQuestion> InterviewQuestions { get; }
+
+    DbSet<InterviewSession> InterviewSessions { get; }
+
+    DbSet<InterviewAnswer> InterviewAnswers { get; }
+
+    DbSet<ResumeAnalysis> ResumeAnalyses { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

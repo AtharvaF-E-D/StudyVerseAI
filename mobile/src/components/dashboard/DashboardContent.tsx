@@ -450,6 +450,19 @@ export function DashboardContent({
         </Card>
       </View>
 
+      {/* Interview Prep entry point */}
+      <View className="mb-6">
+        <Card>
+          <ListItem
+            leading={<Icon name="briefcase" size={22} color={colors.brand} />}
+            title="Interview Prep"
+            subtitle="Practice real Q&A sessions and get real AI resume feedback"
+            trailing={<Icon name="chevron-forward" size={18} color={colors.textSecondary} />}
+            onPress={() => router.push("/(app)/interview")}
+          />
+        </Card>
+      </View>
+
       {/* Current Affairs entry point */}
       <View className="mb-6">
         <Card>

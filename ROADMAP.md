@@ -15,7 +15,7 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | 9 | Study Planner | ✅ | AI day-by-day plan generation with weak-topic weighting, daily/weekly views, automatic missed-task recovery — built and verified end-to-end through the real live UI |
 | 10 | Current Affairs | ✅ | real live news via GNews API, category feed, search, bookmarks, per-article AI comprehension quiz, weekly AI digest — built and verified end-to-end with genuinely live headlines |
 | 11 | Coding Practice | ✅ | real Judge0 code execution across 5 languages, 26 seeded problems, AI hints, daily challenge, progress tracking — built and verified end-to-end with real code actually compiled and run |
-| 12 | Interview Preparation | ⬜ | |
+| 12 | Interview Preparation | ✅ (scoped) | HR/Technical/Behavioral practice with real per-answer AI grading + session improvement plans, real resume analysis — built and verified end-to-end. Voice interviews deliberately deferred, same as Phase 4 |
 | 13 | Gamification | ⬜ | minimal primitives (XP, coins, streak, leaderboard) already landed in Phase 3; this phase adds badges, achievements, daily rewards, spin wheel, missions, seasonal events |
 | 14 | Monetization | ⬜ | |
 | 15 | Admin Portal | ⬜ | |
@@ -180,6 +180,20 @@ Deliberately NOT built this pass: a real date-picker (exam date is a validated `
 2. (Mobile) The submit mutation had an `onError` handler but no `onSuccess` handler — the real Judge0 grading came back correctly every time, but the result was never stored in component state, so the results panel silently never rendered. Backend correctness alone didn't catch this; only actually clicking Submit and watching the screen did.
 
 **Editor honesty note**: the code editor is a plain monospace multi-line text input with a line-number gutter, not a live-syntax-highlighting editor — the two candidate RN packages for that were last published in 2022, four-plus years stale against this app's RN 0.86/Expo 57/New Architecture stack, so adopting either was the wrong trade for a time-boxed phase. Fully functional for writing and submitting real code, just without color-as-you-type.
+
+## Phase 12 — Interview Preparation (scoped)
+
+- [x] 36 hand-written questions (12 each HR/Technical/Behavioral), each with an internal (never client-visible) grading rubric
+- [x] Real per-answer AI grading (0-10, reuses `IAiChatProvider`) — verified live that a weak, short answer and a detailed STAR-format answer score meaningfully differently and the feedback is genuinely responsive to what was actually written, not generic
+- [x] Session completion averages the 5 scores into a 0-100 overall score (verified exact math live) and generates a real, specific AI improvement plan referencing the actual weak and strong answers
+- [x] Resume upload (reuses Phase 6's `IFileStorageService`/`ITextExtractionService` pipeline exactly, no new file pipeline) → real AI analysis (score + strengths + weaknesses + suggestions) — verified live that the analysis references specifics from the actual uploaded resume content, not boilerplate advice
+- [x] 39 new backend unit tests (317/317 total)
+- [x] Mobile: category/history screen with stats, one-question-at-a-time practice session with inline graded feedback, resume upload + analysis result screen, dashboard entry point
+- [x] Verified end-to-end through the real live UI: started a Behavioral session, submitted a real detailed answer, watched real AI grading (score 8, feedback specifically referencing the disagreement/resolution/outcome described) render correctly inline
+
+**Real bug caught and fixed by live UI testing (not fixtures)**: the mobile `InterviewQuestionDto` typed the question identifier field as `id`, but the real backend's `InterviewSessionQuestionDto` serializes it as `questionId`. Since `currentQuestion.id` was therefore always `undefined`, and `JSON.stringify` silently drops object keys whose value is `undefined`, every answer submission actually sent `{"answerText": "..."}` with no `questionId` field at all — a 400 from FluentValidation's `NotEmpty` check, not a crash, so it would have been easy to miss without checking the actual request/response bodies. Fixed by renaming the mobile field to `questionId` everywhere it's used. This is the third phase in a row where actually exercising the live backend+mobile pair together caught a contract mismatch neither half's own isolated testing could have found.
+
+Deliberately NOT built this pass (time-boxed, not an oversight): voice interviews (real speech-to-text/text-to-speech is a separate, larger effort — same reasoning as Phase 4's deferred voice input/output) and a post-session "review all Q&A" screen (mock tests/quiz have one; not required here, cut as UI polish before the core grading/resume loop).
 
 ## Explicit non-goals for Phase 1 (unchanged, still true)
 

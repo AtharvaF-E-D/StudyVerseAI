@@ -64,6 +64,14 @@ public class AppDbContext : DbContext, IAppDbContext
 
     public DbSet<CodeSubmission> CodeSubmissions => Set<CodeSubmission>();
 
+    public DbSet<InterviewQuestion> InterviewQuestions => Set<InterviewQuestion>();
+
+    public DbSet<InterviewSession> InterviewSessions => Set<InterviewSession>();
+
+    public DbSet<InterviewAnswer> InterviewAnswers => Set<InterviewAnswer>();
+
+    public DbSet<ResumeAnalysis> ResumeAnalyses => Set<ResumeAnalysis>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
