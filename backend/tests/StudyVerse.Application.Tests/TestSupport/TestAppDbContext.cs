@@ -77,6 +77,14 @@ public sealed class TestAppDbContext : DbContext, IAppDbContext
 
     public DbSet<ResumeAnalysis> ResumeAnalyses => Set<ResumeAnalysis>();
 
+    public DbSet<UserBadge> UserBadges => Set<UserBadge>();
+
+    public DbSet<UserMissionProgress> UserMissionProgresses => Set<UserMissionProgress>();
+
+    public DbSet<DailyRewardClaim> DailyRewardClaims => Set<DailyRewardClaim>();
+
+    public DbSet<SpinResult> SpinResults => Set<SpinResult>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Mirror the real Infrastructure configurations' handling of get-only computed properties.

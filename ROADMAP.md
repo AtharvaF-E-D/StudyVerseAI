@@ -16,7 +16,7 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | 10 | Current Affairs | ✅ | real live news via GNews API, category feed, search, bookmarks, per-article AI comprehension quiz, weekly AI digest — built and verified end-to-end with genuinely live headlines |
 | 11 | Coding Practice | ✅ | real Judge0 code execution across 5 languages, 26 seeded problems, AI hints, daily challenge, progress tracking — built and verified end-to-end with real code actually compiled and run |
 | 12 | Interview Preparation | ✅ (scoped) | HR/Technical/Behavioral practice with real per-answer AI grading + session improvement plans, real resume analysis — built and verified end-to-end. Voice interviews deliberately deferred, same as Phase 4 |
-| 13 | Gamification | ⬜ | minimal primitives (XP, coins, streak, leaderboard) already landed in Phase 3; this phase adds badges, achievements, daily rewards, spin wheel, missions, seasonal events |
+| 13 | Gamification | ✅ | 12 badges, 5 rotating weekly missions, 7-day escalating daily rewards + seasonal event bonus, weighted spin wheel — built and verified end-to-end through the real live UI (claimed a real daily reward, spun the real wheel) |
 | 14 | Monetization | ⬜ | |
 | 15 | Admin Portal | ⬜ | |
 | 16 | Backend Infrastructure hardening | ⬜ | partial: health checks, rate limiting, and Serilog land in Phase 1; queueing/audit logging/backups deferred |
@@ -194,6 +194,24 @@ Deliberately NOT built this pass: a real date-picker (exam date is a validated `
 **Real bug caught and fixed by live UI testing (not fixtures)**: the mobile `InterviewQuestionDto` typed the question identifier field as `id`, but the real backend's `InterviewSessionQuestionDto` serializes it as `questionId`. Since `currentQuestion.id` was therefore always `undefined`, and `JSON.stringify` silently drops object keys whose value is `undefined`, every answer submission actually sent `{"answerText": "..."}` with no `questionId` field at all — a 400 from FluentValidation's `NotEmpty` check, not a crash, so it would have been easy to miss without checking the actual request/response bodies. Fixed by renaming the mobile field to `questionId` everywhere it's used. This is the third phase in a row where actually exercising the live backend+mobile pair together caught a contract mismatch neither half's own isolated testing could have found.
 
 Deliberately NOT built this pass (time-boxed, not an oversight): voice interviews (real speech-to-text/text-to-speech is a separate, larger effort — same reasoning as Phase 4's deferred voice input/output) and a post-session "review all Q&A" screen (mock tests/quiz have one; not required here, cut as UI polish before the core grading/resume loop).
+
+## Phase 13 — Gamification
+
+- [x] 12 hand-written badges across every existing feature area (Quiz, Flashcards, Coding, Mock Tests, AI Tutor, Study Planner, Current Affairs, Interview Prep, Streak, General) with real, cross-feature activity evaluation — not client-side approximations
+- [x] 5 weekly mission templates, ISO-week-rotation selection (`(isoWeek + year) % N`, same deterministic-rotation pattern as the daily coding/quiz challenges), real progress tracking against actual activity
+- [x] 7-day escalating daily reward schedule (10/15/20/25/30/40/50 coins), a live seasonal event ("Exam Season Sprint", +15 coin bonus) layered on top
+- [x] 8-outcome weighted spin-the-wheel prize table, once-per-day gate (same date-rollover pattern as `StreakService`)
+- [x] 382/382 backend unit tests passing
+- [x] Mobile: gamification hub (summary strip, badges grid, missions list, daily-reward card, an animated segmented spin wheel built from Reanimated rotations rather than a literal pie chart, since no conic-gradient primitive/SVG dependency exists in this app), dashboard teaser card
+- [x] Verified end-to-end through the real live UI: registered, loaded the hub (all 12 badges/3 missions/summary rendered with zero crashes), claimed the real Day-1 daily reward (+25 coins, "Claimed — see you tomorrow!"), spun the real wheel (landed "10 Coins", reveal panel matched the server's `prizeLabel` exactly), confirmed the summary strip's coin total updated to 35 after both real awards
+
+**Four real contract mismatches caught by live UI testing, not by either half's isolated tests** — the worst batch yet, all from the same root cause: the mobile contract was coded to the phase brief's shorthand before the real backend was reachable, and every guessed field name turned out wrong:
+1. `GET /missions` and `GET /badges` both actually wrap their list in an envelope object (`{ completedCount, totalCount, missions: [...] }` / `{ earnedCount, totalCount, badges: [...] }`), not a bare array as assumed — crashed the hub outright with `missions.map is not a function` on first load.
+2. Every identifier/flag was renamed on the real backend: mission/badge `id` (not `missionTemplateId`/`badgeId`), badge `title`/`category` (not `name`/`iconName` — there is no server-driven icon at all, so the mobile `BadgeTile` now maps each real category string to a local icon itself), and `claimedToday`/`dayNumber`/`spunToday`/`currentStreakDays` (not `alreadyClaimedToday`/`consecutiveDayNumber`/`alreadySpunToday`/`currentStreak`).
+3. The real daily-reward-status and summary responses carry several fields the shorthand never anticipated (`tomorrowCoins`/`tomorrowXp`/`activeSeasonalEventName`/`activeSeasonalEventBonusCoins`), and the real claim/spin POST responses return running totals and seasonal-event data (`newXpTotal`/`newCoinsTotal`/`seasonalEventName`/`seasonalEventBonusCoins`) not in the original contract at all.
+4. A stale `alreadyClaimedToday` reference survived in the **dashboard** screen's gamification teaser (`app/(app)/index.tsx`), not just the hub — found only by a systematic re-grep across every gamification-consuming file after the hub itself was fixed, confirming the value of re-checking beyond the file that actually crashed.
+
+This is the fifth phase in a row (Phases 9-13) where a live integration test caught a real mobile/backend contract mismatch that neither side's isolated verification (`dotnet test` / `tsc`+`eslint`+fixtures) could have found — every fix above was driven by directly capturing real request/response bodies over the wire, not by re-reading either side's source in isolation. The dev-only `gamification-preview.tsx` fixture screen (used for earlier visual QA while the real backend was unreachable) was deleted once the real hub was verified end-to-end against it, per its own header comment.
 
 ## Explicit non-goals for Phase 1 (unchanged, still true)
 

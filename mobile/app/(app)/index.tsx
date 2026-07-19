@@ -18,6 +18,7 @@ import {
 import { useFlashcardStatsQuery } from "../../src/hooks/useFlashcards";
 import { useActivePlanQuery, useTodayTasksQuery } from "../../src/hooks/useStudyPlanner";
 import { useCodingStatsQuery } from "../../src/hooks/useCodingPractice";
+import { useGamificationSummaryQuery } from "../../src/hooks/useGamification";
 
 /**
  * Authenticated home screen: streak/xp/coins summary, today's challenges,
@@ -39,6 +40,7 @@ export default function AppHomeScreen() {
   const activePlanQuery = useActivePlanQuery();
   const todayTasksQuery = useTodayTasksQuery(!!activePlanQuery.data);
   const codingStatsQuery = useCodingStatsQuery();
+  const gamificationSummaryQuery = useGamificationSummaryQuery();
   const completeChallengeMutation = useCompleteChallengeMutation();
   const markNotificationReadMutation = useMarkNotificationReadMutation();
 
@@ -122,6 +124,15 @@ export default function AppHomeScreen() {
               ? {
                   totalSolved: codingStatsQuery.data.totalSolved,
                   currentDailyStreak: codingStatsQuery.data.currentDailyStreak,
+                }
+              : undefined
+          }
+          gamificationSummary={
+            gamificationSummaryQuery.data
+              ? {
+                  badgesEarnedCount: gamificationSummaryQuery.data.badgesEarnedCount,
+                  totalBadgesCount: gamificationSummaryQuery.data.totalBadgesCount,
+                  dailyRewardReady: !gamificationSummaryQuery.data.dailyRewardStatus.claimedToday,
                 }
               : undefined
           }

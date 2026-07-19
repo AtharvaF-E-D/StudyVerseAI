@@ -52,6 +52,20 @@ export interface DashboardContentProps {
    * render the same generic subtitle.
    */
   codingStatsSummary?: { totalSolved: number; currentDailyStreak: number };
+  /**
+   * Gamification hub snapshot for its entry point, from a separate
+   * `useGamificationSummaryQuery()` call in `app/(app)/index.tsx` — same
+   * reasoning as `flashcardsDueToday`/`studyPlanSummary`/`codingStatsSummary`
+   * above (its own feature area/backend contract, not part of
+   * `DashboardResponse`). `undefined` covers both "still loading" and
+   * "summary unavailable", both of which render a generic subtitle with no
+   * badge/indicator.
+   */
+  gamificationSummary?: {
+    badgesEarnedCount: number;
+    totalBadgesCount: number;
+    dailyRewardReady: boolean;
+  };
 }
 
 function SectionTitle({ children, trailing }: { children: string; trailing?: string }) {
@@ -95,6 +109,7 @@ export function DashboardContent({
   flashcardsDueToday = 0,
   studyPlanSummary,
   codingStatsSummary,
+  gamificationSummary,
 }: DashboardContentProps) {
   const { colors } = useTheme();
 
@@ -472,6 +487,30 @@ export function DashboardContent({
             subtitle="Browse the latest news, then test your understanding"
             trailing={<Icon name="chevron-forward" size={18} color={colors.textSecondary} />}
             onPress={() => router.push("/(app)/currentaffairs")}
+          />
+        </Card>
+      </View>
+
+      {/* Gamification hub entry point */}
+      <View className="mb-6">
+        <Card>
+          <ListItem
+            leading={<Icon name="trophy" size={22} color={colors.warning} />}
+            title="Rewards"
+            subtitle={
+              gamificationSummary
+                ? `${gamificationSummary.badgesEarnedCount}/${gamificationSummary.totalBadgesCount} badges earned`
+                : "Badges, missions, daily rewards, and the spin wheel"
+            }
+            trailing={
+              <View className="flex-row items-center">
+                {gamificationSummary?.dailyRewardReady ? (
+                  <Badge label="Reward ready!" variant="success" className="mr-2" />
+                ) : null}
+                <Icon name="chevron-forward" size={18} color={colors.textSecondary} />
+              </View>
+            }
+            onPress={() => router.push("/(app)/gamification")}
           />
         </Card>
       </View>

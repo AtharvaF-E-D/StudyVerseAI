@@ -72,6 +72,14 @@ public class AppDbContext : DbContext, IAppDbContext
 
     public DbSet<ResumeAnalysis> ResumeAnalyses => Set<ResumeAnalysis>();
 
+    public DbSet<UserBadge> UserBadges => Set<UserBadge>();
+
+    public DbSet<UserMissionProgress> UserMissionProgresses => Set<UserMissionProgress>();
+
+    public DbSet<DailyRewardClaim> DailyRewardClaims => Set<DailyRewardClaim>();
+
+    public DbSet<SpinResult> SpinResults => Set<SpinResult>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);

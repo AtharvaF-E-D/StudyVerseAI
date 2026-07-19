@@ -56,6 +56,7 @@ public static class DependencyInjection
         services.Configure<Judge0Options>(configuration.GetSection(Judge0Options.SectionName));
 
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+        services.AddSingleton<IRandomProvider, RandomProvider>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
 

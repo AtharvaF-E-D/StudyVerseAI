@@ -71,5 +71,13 @@ public interface IAppDbContext
 
     DbSet<ResumeAnalysis> ResumeAnalyses { get; }
 
+    DbSet<UserBadge> UserBadges { get; }
+
+    DbSet<UserMissionProgress> UserMissionProgresses { get; }
+
+    DbSet<DailyRewardClaim> DailyRewardClaims { get; }
+
+    DbSet<SpinResult> SpinResults { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using StudyVerse.Application.Common.Behaviors;
 using StudyVerse.Application.Common.Interfaces;
 using StudyVerse.Application.Common.Services;
+using StudyVerse.Application.Features.Gamification.Common;
 using StudyVerse.Application.Features.StudyPlanner.Common;
 
 namespace StudyVerse.Application;
@@ -32,6 +33,12 @@ public static class DependencyInjection
         // Study Planner's missed-task recovery pass, injected directly by GetTodayTasksQueryHandler
         // and GetActivePlanQueryHandler.
         services.AddScoped<MissedTaskRecoveryService>();
+
+        // Same "plain concrete class" reasoning as MissedTaskRecoveryService above - Phase 13
+        // Gamification's lazy badge/mission evaluators, shared by their respective Get*QueryHandlers
+        // and the gamification summary.
+        services.AddScoped<BadgeEvaluationService>();
+        services.AddScoped<MissionProgressService>();
 
         return services;
     }
