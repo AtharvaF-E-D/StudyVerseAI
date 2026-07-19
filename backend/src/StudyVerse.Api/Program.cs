@@ -111,6 +111,18 @@ try
             "or the GNews__ApiKey environment variable in Staging/Production).");
     }
 
+    // ---- Judge0 (Coding Practice grading) ----
+    // Not a hard startup failure, same reasoning as GNews:ApiKey above — Judge0Provider itself logs
+    // and returns an "Error" status per-submission rather than throwing if this is still missing.
+    var judge0ApiKey = builder.Configuration["Judge0:RapidApiKey"];
+    if (string.IsNullOrWhiteSpace(judge0ApiKey))
+    {
+        Log.Warning(
+            "Judge0:RapidApiKey is not configured — Coding Practice submissions will fail to grade " +
+            "until it's set (`dotnet user-secrets set Judge0:RapidApiKey <key>` in Development, or " +
+            "the Judge0__RapidApiKey environment variable in Staging/Production).");
+    }
+
     // ---- Swagger / OpenAPI ----
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>

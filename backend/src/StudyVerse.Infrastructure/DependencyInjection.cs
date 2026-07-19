@@ -53,6 +53,7 @@ public static class DependencyInjection
         services.Configure<OpenAiOptions>(configuration.GetSection(OpenAiOptions.SectionName));
         services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));
         services.Configure<GNewsOptions>(configuration.GetSection(GNewsOptions.SectionName));
+        services.Configure<Judge0Options>(configuration.GetSection(Judge0Options.SectionName));
 
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
@@ -91,6 +92,18 @@ public static class DependencyInjection
             client.Timeout = TimeSpan.FromSeconds(15);
         });
         services.AddSingleton<IGNewsProvider, GNewsProvider>();
+
+        // Real Judge0 CE via RapidAPI - base address + the fixed x-rapidapi-host header live here
+        // (compile-time constants); the per-request x-rapidapi-key header (configuration-driven) is
+        // added by Judge0Provider itself. A generous timeout since `wait=true` blocks on Judge0
+        // actually compiling+running the submission before responding.
+        services.AddHttpClient(nameof(Judge0Provider), client =>
+        {
+            client.BaseAddress = new Uri("https://judge0-ce.p.rapidapi.com/");
+            client.DefaultRequestHeaders.Add("x-rapidapi-host", "judge0-ce.p.rapidapi.com");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
+        services.AddSingleton<IJudge0Provider, Judge0Provider>();
 
         return services;
     }

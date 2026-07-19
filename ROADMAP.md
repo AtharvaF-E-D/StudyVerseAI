@@ -14,7 +14,7 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | 8 | Mock Tests | ✅ | timed exams over the Phase 5 question bank, real percentile/rank, AI weakness analysis, review — built and verified end-to-end through the real live UI |
 | 9 | Study Planner | ✅ | AI day-by-day plan generation with weak-topic weighting, daily/weekly views, automatic missed-task recovery — built and verified end-to-end through the real live UI |
 | 10 | Current Affairs | ✅ | real live news via GNews API, category feed, search, bookmarks, per-article AI comprehension quiz, weekly AI digest — built and verified end-to-end with genuinely live headlines |
-| 11 | Coding Practice | ⬜ | |
+| 11 | Coding Practice | ✅ | real Judge0 code execution across 5 languages, 26 seeded problems, AI hints, daily challenge, progress tracking — built and verified end-to-end with real code actually compiled and run |
 | 12 | Interview Preparation | ⬜ | |
 | 13 | Gamification | ⬜ | minimal primitives (XP, coins, streak, leaderboard) already landed in Phase 3; this phase adds badges, achievements, daily rewards, spin wheel, missions, seasonal events |
 | 14 | Monetization | ⬜ | |
@@ -164,6 +164,22 @@ Deliberately NOT built this pass: a real date-picker (exam date is a validated `
 - [x] Verified end-to-end through the real live UI with genuinely live headlines (not fixtures) — a real feed of actual current news (matching what a live GNews query returns), bookmarked a real article, read its full real content, and generated (and viewed) a real AI quiz question directly testing comprehension of that specific article's actual content
 
 **Deliberately did not fabricate AI "current events"**: the honest per-article description shown in the feed is GNews's own real description field, not an AI-generated summary — inventing per-article AI summaries of news content would risk quietly drifting from what the source article actually says, which matters more for a "current affairs" feature than almost anywhere else in the app.
+
+## Phase 11 — Coding Practice
+
+- [x] Real code execution via Judge0 CE (RapidAPI) — 5 languages (Python, JavaScript, Java, C++, C#), Judge0's own output comparison (no manual string-diffing), graceful `Error` sentinel on outage/rate-limit rather than a 500
+- [x] 26 hand-written, verified-correct problems (Easy 11/Medium 10/Hard 5; Arrays/Strings/Math/Recursion/Data Structures; 5 tagged interview-classic — Two Sum, Valid Parentheses, Binary Search, etc.), 107 test cases (52 sample shown to the user, the rest hidden and never leaked in results)
+- [x] AI hints (reuses `IAiChatProvider`, no new provider) — verified live to nudge toward an approach without handing over working code or naming the exact algorithm
+- [x] Daily coding challenge (same rotation style as other daily-challenge features), first-solve-only XP/coins (15/25/40 XP, 3/5/8 coins by difficulty — no re-farming via resubmission), progress stats
+- [x] 26 new backend unit tests (278/278 total)
+- [x] Mobile: problem list (stats, daily challenge, difficulty/category/interview filters), detail+editor screen (language picker swaps starter code, hint reveal, submit with a real "Running..." state), color-coded results panel
+- [x] Verified end-to-end through the real live UI: browsed real seeded problems, wrote a real Python FizzBuzz solution in the editor, submitted it and watched real Judge0 grading come back (Accepted, 4/4, XP/coins awarded, hidden tests correctly pass/fail-only)
+
+**Two real bugs caught by testing against real infrastructure, not fixtures or mocks:**
+1. (Backend) `GetSubmissionsQueryHandler` ordered results by a property read off an already-projected DTO — EF Core's **InMemory** test provider silently tolerated this (all 278 tests passed), but the real **Npgsql** provider threw a 500 the first time it was hit live, since the SQL translator couldn't express it. Fixed by ordering on the raw entity property before projecting to the DTO.
+2. (Mobile) The submit mutation had an `onError` handler but no `onSuccess` handler — the real Judge0 grading came back correctly every time, but the result was never stored in component state, so the results panel silently never rendered. Backend correctness alone didn't catch this; only actually clicking Submit and watching the screen did.
+
+**Editor honesty note**: the code editor is a plain monospace multi-line text input with a line-number gutter, not a live-syntax-highlighting editor — the two candidate RN packages for that were last published in 2022, four-plus years stale against this app's RN 0.86/Expo 57/New Architecture stack, so adopting either was the wrong trade for a time-boxed phase. Fully functional for writing and submitting real code, just without color-as-you-type.
 
 ## Explicit non-goals for Phase 1 (unchanged, still true)
 

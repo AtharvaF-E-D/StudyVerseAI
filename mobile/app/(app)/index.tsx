@@ -17,6 +17,7 @@ import {
 } from "../../src/hooks/useDashboard";
 import { useFlashcardStatsQuery } from "../../src/hooks/useFlashcards";
 import { useActivePlanQuery, useTodayTasksQuery } from "../../src/hooks/useStudyPlanner";
+import { useCodingStatsQuery } from "../../src/hooks/useCodingPractice";
 
 /**
  * Authenticated home screen: streak/xp/coins summary, today's challenges,
@@ -37,6 +38,7 @@ export default function AppHomeScreen() {
   const flashcardStatsQuery = useFlashcardStatsQuery();
   const activePlanQuery = useActivePlanQuery();
   const todayTasksQuery = useTodayTasksQuery(!!activePlanQuery.data);
+  const codingStatsQuery = useCodingStatsQuery();
   const completeChallengeMutation = useCompleteChallengeMutation();
   const markNotificationReadMutation = useMarkNotificationReadMutation();
 
@@ -112,6 +114,14 @@ export default function AppHomeScreen() {
               ? {
                   daysRemaining: activePlanQuery.data.daysRemaining,
                   todayTaskCount: todayTasksQuery.data?.length ?? 0,
+                }
+              : undefined
+          }
+          codingStatsSummary={
+            codingStatsQuery.data
+              ? {
+                  totalSolved: codingStatsQuery.data.totalSolved,
+                  currentDailyStreak: codingStatsQuery.data.currentDailyStreak,
                 }
               : undefined
           }

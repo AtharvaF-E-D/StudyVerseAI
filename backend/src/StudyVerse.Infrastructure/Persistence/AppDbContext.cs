@@ -58,6 +58,12 @@ public class AppDbContext : DbContext, IAppDbContext
 
     public DbSet<WeeklyDigest> WeeklyDigests => Set<WeeklyDigest>();
 
+    public DbSet<CodingProblem> CodingProblems => Set<CodingProblem>();
+
+    public DbSet<CodingProblemTestCase> CodingProblemTestCases => Set<CodingProblemTestCase>();
+
+    public DbSet<CodeSubmission> CodeSubmissions => Set<CodeSubmission>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);

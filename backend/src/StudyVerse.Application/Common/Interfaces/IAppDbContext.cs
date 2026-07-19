@@ -57,5 +57,11 @@ public interface IAppDbContext
 
     DbSet<WeeklyDigest> WeeklyDigests { get; }
 
+    DbSet<CodingProblem> CodingProblems { get; }
+
+    DbSet<CodingProblemTestCase> CodingProblemTestCases { get; }
+
+    DbSet<CodeSubmission> CodeSubmissions { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

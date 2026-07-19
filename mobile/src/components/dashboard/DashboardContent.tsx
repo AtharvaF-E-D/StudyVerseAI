@@ -43,6 +43,15 @@ export interface DashboardContentProps {
    * of which render the same "create a plan" prompt.
    */
   studyPlanSummary?: { daysRemaining: number; todayTaskCount: number };
+  /**
+   * Coding Practice snapshot for its entry point, from a separate
+   * `useCodingStatsQuery()` call in `app/(app)/index.tsx` — same reasoning
+   * as `flashcardsDueToday`/`studyPlanSummary` above (its own feature
+   * area/backend contract, not part of `DashboardResponse`). `undefined`
+   * covers both "still loading" and "no problems solved yet", both of which
+   * render the same generic subtitle.
+   */
+  codingStatsSummary?: { totalSolved: number; currentDailyStreak: number };
 }
 
 function SectionTitle({ children, trailing }: { children: string; trailing?: string }) {
@@ -85,6 +94,7 @@ export function DashboardContent({
   markingNotificationId = null,
   flashcardsDueToday = 0,
   studyPlanSummary,
+  codingStatsSummary,
 }: DashboardContentProps) {
   const { colors } = useTheme();
 
@@ -402,6 +412,23 @@ export function DashboardContent({
             subtitle="Take a timed practice exam and see how you rank"
             trailing={<Icon name="chevron-forward" size={18} color={colors.textSecondary} />}
             onPress={() => router.push("/(app)/mocktests")}
+          />
+        </Card>
+      </View>
+
+      {/* Coding Practice entry point */}
+      <View className="mb-6">
+        <Card>
+          <ListItem
+            leading={<Icon name="code-slash" size={22} color={colors.brand} />}
+            title="Coding Practice"
+            subtitle={
+              codingStatsSummary
+                ? `${codingStatsSummary.totalSolved} solved · ${codingStatsSummary.currentDailyStreak} day streak`
+                : "Solve real problems, graded instantly against real test cases"
+            }
+            trailing={<Icon name="chevron-forward" size={18} color={colors.textSecondary} />}
+            onPress={() => router.push("/(app)/coding")}
           />
         </Card>
       </View>

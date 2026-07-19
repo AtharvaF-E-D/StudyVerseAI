@@ -63,6 +63,12 @@ public sealed class TestAppDbContext : DbContext, IAppDbContext
 
     public DbSet<WeeklyDigest> WeeklyDigests => Set<WeeklyDigest>();
 
+    public DbSet<CodingProblem> CodingProblems => Set<CodingProblem>();
+
+    public DbSet<CodingProblemTestCase> CodingProblemTestCases => Set<CodingProblemTestCase>();
+
+    public DbSet<CodeSubmission> CodeSubmissions => Set<CodeSubmission>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Mirror the real Infrastructure configurations' handling of get-only computed properties.
